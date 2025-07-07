@@ -61,8 +61,6 @@ export const RoundService: ServiceSchema = {
 			params: {
 				start: "date|optional|convert",
 				end: "date|optional|convert",
-				cooldown: "number|optional",
-				duration: "number|optional",
 			},
 			async handler(
 				ctx: Context<{
@@ -91,15 +89,5 @@ export const RoundService: ServiceSchema = {
 				return round;
 			},
 		},
-
-		// setWinner: {
-		// 	params: { id: "string", winner: "string" },
-		// 	async handler(ctx) {
-		// 		return this.adapter.update({
-		// 			id: ctx.params.id,
-		// 			winner: ctx.params.winner,
-		// 		});
-		// 	},
-		// },
 	},
 };

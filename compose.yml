@@ -1,0 +1,12 @@
+services:
+  queue-redis:
+    image: redis:7.2.4-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - the-last-of-gus-network
+
+networks:
+  the-last-of-gus-network:
+    name: the-last-of-gus-network
+    driver: bridge

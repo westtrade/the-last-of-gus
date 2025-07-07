@@ -1,0 +1,8 @@
+{
+    "name": "@westtrade/tlg",
+    "description": "The Last of Guss - is a browser-based game where players compete to tap as fast and as much as possible on a virtual goose that has contracted the G-42 mutation.",
+    "private": true,
+    "workspaces": [
+        "apps/*"
+    ]
+}

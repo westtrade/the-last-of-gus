@@ -1,0 +1,103 @@
+@keyframes rotateCharacter
+    0%
+        transform:  rotate(-5deg)
+    50%
+        transform:  rotate(5deg)
+    100%
+        transform:  rotate(-5deg)
+
+@keyframes rotateShiny
+    0%
+        transform:  translate(-50%, 10%) rotate(0deg)
+        opacity: 0
+    50%
+        // transform:  translate(-50%, -50%) rotate(180deg)
+        opacity: 1
+    100%
+        transform:  translate(-50%, 10%) rotate(360deg)
+        opacity: 0
+
+.character
+    position: absolute
+    bottom: 21%
+    left: 50%
+    transform: translate(-50%, 0) scale(1)
+    cursor: pointer
+    // height: clamp(5vh, 90vh, 90vh)
+    user-select: none
+    aspect-ratio: 1
+    // width: 50vw
+    max-width: 13.6%
+    width: 100%
+
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: end
+
+    &__wrapper
+        position: relative
+        z-index: 20
+        width: 100%
+
+    &__reward
+        font-size: 1.4rem
+        position: absolute
+        font-weight: 700
+        font-size: 28px
+        text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black,1px 1px 0 black;
+
+    &__element
+        width: 100%
+        border: transparent
+        background: transparent
+        animation: rotateCharacter 1.8s infinite
+        -webkit-tap-highlight-color: transparent
+        cursor: pointer
+
+
+        & > svg,
+        & > img
+            pointer-events: none
+            position: relative
+            transform: translate(0, -15%) scale(1.4)
+            &[data-level="1"]
+                transform: translate(0, -16%) scale(1.6)
+                
+
+    &__shadow
+        position: absolute
+        bottom: -15px
+        left: 10px
+        width: 220%
+        z-index: 10
+        transform: translate(-30%, 20%)
+        opacity: 0.6
+        pointer-events: none
+
+    &__shiny
+        position: absolute
+        left: 50%
+        bottom: -10%
+        width: 300%
+        transform: translate(-50%, 0)
+        animation: rotateShiny 4s infinite
+        z-index: 5
+        opacity: 0
+        pointer-events: none
+
+    &__animation
+        position: absolute
+        left: 0
+        top: 0
+        right: 0
+        bottom: 0
+        z-index: 40
+        pointer-events: none
+
+    &__falling-head
+        width: 26px
+        position: absolute
+
+        & > img
+            width: 100%

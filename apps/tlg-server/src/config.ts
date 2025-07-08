@@ -7,3 +7,5 @@ export const ROUND_DURATION = Number.parseInt(
 );
 export const REDIS_QUEUE_ENDPOINT =
 	process.env.REDIS_QUEUE_ENDPOINT || `redis://0.0.0.0:6379`;
+
+export const SERVICES = process.env.SERVICES || "*";

@@ -1,12 +1,47 @@
 services:
-  queue-redis:
-    image: redis:7.2.4-alpine
-    ports:
-      - "6379:6379"
-    networks:
-      - the-last-of-gus-network
+    redis:
+        image: redis:7.2.4-alpine
+        ports:
+            - "6379:6379"
+        networks:
+            - the-last-of-gus-network
+
+    services:
+        image: oven/bun:1.2.18
+        working_dir: /usr/src/app
+        ports:
+            - "3000:3000"
+        volumes:
+            - ./:/usr/src/app
+            - ./data:/usr/src/app/apps/tlg-server/data
+        restart: always
+        command: bun run --filter="@westtrade/tlg-server" start
+        networks:
+            - the-last-of-gus-network
+        depends_on:
+            - redis
+        environment:
+            TRANSPORTER: redis://redis:6379
+
+    service-taps:
+        image: oven/bun:1.2.18
+        working_dir: /usr/src/app
+        ports:
+            - "3000:3000"
+        volumes:
+            - ./:/usr/src/app
+            - ./data:/usr/src/app/apps/tlg-server/data
+        restart: always
+        command: bun run --filter="@westtrade/tlg-server" start
+        networks:
+            - the-last-of-gus-network
+        depends_on:
+            - redis
+        environment:
+            TRANSPORTER: redis://redis:6379
+            SERVICES: taps
 
 networks:
-  the-last-of-gus-network:
-    name: the-last-of-gus-network
-    driver: bridge
+    the-last-of-gus-network:
+        name: the-last-of-gus-network
+        driver: bridge

@@ -1,6 +1,6 @@
 {
   "name": "@westtrade/tlg-server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Backend server for The Last of Guss",
   "module": "index.ts",
   "type": "module",
@@ -8,30 +8,34 @@
     "@types/bun": "latest"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/lodash": "^4.17.20"
   },
   "bin": {
     "tlg-server": "src/cli/index.js"
   },
   "dependencies": {
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/lodash.omit": "^4.5.9",
     "bcryptjs": "^3.0.2",
     "bull": "^4.16.5",
     "cac": "^6.7.14",
     "dayjs": "^1.11.13",
+    "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",
-    "lodash.omit": "^4.5.0",
+    "lodash": "^4.17.21",
     "moleculer": "^0.14.35",
     "moleculer-bull": "^0.3.1",
     "moleculer-db": "^0.8.29",
+    "moleculer-repl": "^0.7.4",
     "pm2": "^6.0.8",
+    "ulid": "^3.0.1",
     "vitest": "^3.2.4"
   },
   "scripts": {
-    "start": "bun --bun ./src/node.ts.",
-    "dev": "bun --watch --bun ./src/node.ts",
-    "test": "vitest run",
-    "tdd": "vitest"
+    "repl": "NODE_NO_WARNINGS=1 node_modules/.bin/moleculer-runner -rs -c ./moleculer-config/moleculer.config.js",
+    "start": "bun run --bun src/node.ts",
+    "dev": "bun --watch --bun src/node.ts",
+    "test": "NODE_NO_WARNINGS=1 vitest run",
+    "tdd": "NODE_NO_WARNINGS=1 vitest"
   }
 }

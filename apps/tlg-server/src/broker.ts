@@ -1,9 +1,11 @@
 import { ServiceBroker, type ServiceSchema } from "moleculer";
 import * as services from "./services";
-import { SERVICES } from "./config";
+import { SERVICES } from "../moleculer-config/config";
+import moleculerConfig from "../moleculer-config/moleculer.config";
 
 export const broker = new ServiceBroker({
 	nodeID: process.env.NODE_ID || `tlg-server-node-${process.pid}`,
+	...moleculerConfig,
 });
 
 function loadServices(

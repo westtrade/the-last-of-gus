@@ -3,9 +3,18 @@ import DbService, { MemoryAdapter } from "moleculer-db";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import path from "node:path";
-import omit from "lodash.omit";
+import _, { omit } from "lodash";
 
-import { JWT_SECRET } from "../config";
+import { JWT_SECRET } from "../../moleculer-config/config";
+import type {
+	JwtPayload,
+	AuthMeta,
+	RawUserModel,
+	UserModel,
+	UserResponse,
+	CreateOrLoginParams,
+} from "../models";
+import { isAdmin, isNikita } from "../libs";
 
 export const UserService: ServiceSchema = {
 	name: "users",
@@ -22,26 +31,30 @@ export const UserService: ServiceSchema = {
 
 	actions: {
 		me: {
-			async handler(ctx: Context<undefined, { token: string }>) {
+			async handler(
+				ctx: Context<undefined, AuthMeta>
+			): Promise<UserResponse> {
 				const { token } = ctx.meta;
+				const { id: userId } = jwt.verify(
+					token,
+					JWT_SECRET
+				) as JwtPayload;
 
-				const { id: userId } =
-					(jwt.verify(token, JWT_SECRET) as {
-						id: string;
-					}) || {};
+				let rawUser: RawUserModel | null = await this.adapter.findById(
+					userId
+				);
 
-				let user = await this.adapter.findById(userId);
-				if (!user) {
+				if (!rawUser) {
 					throw new Error("user_not_found");
 				}
 
-				user = this.adapter.afterRetrieveTransformID(
-					user,
+				const user = this.adapter.afterRetrieveTransformID(
+					rawUser,
 					this.settings.idField
-				);
+				) as UserModel;
 
 				return {
-					...omit(user, ["password"]),
+					..._.omit(user, ["password"]),
 					token,
 				};
 			},
@@ -49,41 +62,36 @@ export const UserService: ServiceSchema = {
 
 		createOrLogin: {
 			params: { username: "string", password: "string" },
-			async handler(
-				ctx: Context<{ username: string; password: string }>
-			) {
+			async handler(ctx: Context<CreateOrLoginParams>) {
 				const { username, password: passwordInput } = ctx.params;
 
-				let user = await this.adapter.findOne({ username });
+				let rawUser: RawUserModel | null = await this.adapter.findOne({
+					username,
+				});
 
-				if (user) {
-					if (!(await bcrypt.compare(passwordInput, user.password))) {
+				if (rawUser) {
+					if (
+						!(await bcrypt.compare(passwordInput, rawUser.password))
+					) {
 						throw new Error("invalid_password");
 					}
 				} else {
-					const role =
-						username === "admin"
-							? "admin"
-							: [
-									"nikita",
-									"никита",
-									"niкita",
-									"niкitа",
-									"nikitа",
-							  ].includes(username.toLowerCase())
-							? "nikita"
-							: "survivor";
+					const role = isAdmin(username)
+						? "admin"
+						: isNikita(username)
+						? "nikita"
+						: "survivor";
 
 					const password = await bcrypt.hash(passwordInput, 10);
-					user = await this.adapter.insert({
+					rawUser = await this.adapter.insert({
 						username,
 						password,
 						role,
 					});
 				}
 
-				user = this.adapter.afterRetrieveTransformID(
-					user,
+				const user: UserModel = this.adapter.afterRetrieveTransformID(
+					rawUser,
 					this.settings.idField
 				);
 
@@ -91,6 +99,7 @@ export const UserService: ServiceSchema = {
 					{ id: user.id, role: user.role },
 					JWT_SECRET
 				);
+
 				return {
 					...omit(user, ["password"]),
 					token,

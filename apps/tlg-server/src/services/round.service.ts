@@ -1,21 +1,28 @@
 import type { ServiceSchema, Context } from "moleculer";
 import DbService, { MemoryAdapter } from "moleculer-db";
 import dayjs from "dayjs";
-
 import path from "node:path";
 
-import { COOLDOWN_DURATION, ROUND_DURATION } from "../config";
+import {
+	COOLDOWN_DURATION,
+	ROUND_DURATION,
+} from "../../moleculer-config/config";
+import type { RoundModel, RoundResponse } from "../models/round.model";
 
-function mapRound(round: any) {
+function mapRound(round: RoundModel) {
 	const now = new Date();
-
-	round.status = dayjs(now).isBefore(round.start)
+	const status = dayjs(now).isBefore(round.start)
 		? "cooldown"
 		: dayjs(now).isAfter(round.end)
 		? "finished"
 		: "active";
 
-	return round;
+	const result: RoundResponse = {
+		...round,
+		status,
+	};
+
+	return result;
 }
 
 export const RoundService: ServiceSchema = {
@@ -36,7 +43,23 @@ export const RoundService: ServiceSchema = {
 			"winner",
 			"totalScore",
 			"taps",
+			"winnerUser",
 		],
+
+		populate: {
+			winnerUser: {
+				action: "users.get",
+				params(ctx: any, doc: RoundModel) {
+					if (!doc.winner) {
+						return null;
+					}
+
+					return {
+						id: doc.winner,
+					};
+				},
+			},
+		},
 	},
 
 	hooks: {
@@ -69,7 +92,6 @@ export const RoundService: ServiceSchema = {
 				}>
 			) {
 				const { start: startInput, end: endInput } = ctx.params;
-
 				const start =
 					startInput ??
 					dayjs().add(COOLDOWN_DURATION, "second").toDate();
@@ -82,7 +104,9 @@ export const RoundService: ServiceSchema = {
 							dayjs(start).add(ROUND_DURATION, "second").toDate(),
 						totalScore: 0,
 						taps: 0,
+						winner: null,
 					}),
+
 					this.settings.idField
 				);
 

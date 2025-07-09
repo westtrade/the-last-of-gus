@@ -91,14 +91,12 @@ cli.command("start [services]", "Start server")
 
 		const services =
 			inputServices === undefined
-				? "*"
+				? undefined
 				: inputServices
 						.replaceAll(",", " ")
 						.replace(/ +/g, " ")
 						.split(" ")
 						.filter(Boolean);
-
-		console.log({ services });
 
 		const promises = [];
 		for (const app of ecosystem.apps) {
@@ -131,7 +129,7 @@ cli.command("start [services]", "Start server")
 					env: {
 						...(app.env ?? {}),
 						["SERVICES"]:
-							services.join(",") ?? app.env?.["SERVICES"],
+							services?.join(",") ?? app.env?.["SERVICES"],
 					},
 				},
 				(err) => (err ? reject(err) : resolve())
@@ -146,7 +144,7 @@ cli.command("start [services]", "Start server")
 
 			console.log(
 				`✅ ${shortName} ${
-					services === "*"
+					services === undefined
 						? "all services"
 						: `with services: ${services.join(", ")}`
 				} - successfully started!`
@@ -208,6 +206,8 @@ cli.command("restart", "🔄 Restart server").action(async (options) => {
 		pm2.disconnect();
 	}
 });
+
+cli.command("repl", "Start a REPL session").action(async () => {});
 
 cli.help();
 cli.version(version);

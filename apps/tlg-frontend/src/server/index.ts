@@ -2,8 +2,10 @@ import { Elysia, t } from "elysia";
 import { createServer as createViteServer } from "vite";
 import { connect } from "elysia-connect-middleware";
 
-import { broker } from "@westtrade/tlg-server";
+import { broker, UserResponse } from "@westtrade/tlg-server";
 await broker.start();
+
+console.log(process.env.HTTP_PORT);
 
 const vite = await createViteServer({
 	server: { middlewareMode: true },
@@ -15,11 +17,15 @@ const auth = new Elysia({ prefix: "/auth" })
 		async ({ cookie }) => {
 			await broker.waitForServices(["users"]);
 
-			const result = await broker.call("users.me", undefined, {
-				meta: {
-					token: cookie.sessionToken.toString(),
-				},
-			});
+			const result = await broker.call<UserResponse, undefined>(
+				"users.me",
+				undefined,
+				{
+					meta: {
+						token: cookie.sessionToken.toString(),
+					},
+				}
+			);
 
 			return result;
 		},

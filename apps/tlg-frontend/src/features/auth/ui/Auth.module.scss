@@ -48,6 +48,16 @@
 		outline: 0;
 		border-color: #1b1714;
 	}
+
+	&:-webkit-autofill {
+		-webkit-box-shadow: 0 0 0 3000px #373532 inset !important;
+		-webkit-text-fill-color: #edd3b1 !important;
+		background-color: transparent !important;
+
+		font-size: 32px !important;
+		font-family: inherit !important;
+		font-weight: 700 !important;
+	}
 }
 
 .submit {

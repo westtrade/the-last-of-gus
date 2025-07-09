@@ -40,6 +40,7 @@
   },
   "scripts": {
     "dev": "bun --bun --watch .",
+    "start": "bun --bun .",
     "build": "vite build"
   }
 }

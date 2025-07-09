@@ -5,10 +5,9 @@ const COOLDOWN_DURATION = Number.parseInt(
 const ROUND_DURATION = Number.parseInt(process.env.ROUND_DURATION || "60");
 const REDIS_QUEUE_ENDPOINT =
 	process.env.REDIS_QUEUE_ENDPOINT || `redis://0.0.0.0:6379`;
-
 const SERVICES = process.env.SERVICES || "*";
-
 const TRANSPORTER = process.env.TRANSPORTER || "redis://localhost:6379";
+const LOG_LEVEL = process.env.LOG_LEVEL || "info";
 
 module.exports = {
 	JWT_SECRET,
@@ -17,4 +16,5 @@ module.exports = {
 	REDIS_QUEUE_ENDPOINT,
 	SERVICES,
 	TRANSPORTER,
+	LOG_LEVEL,
 };

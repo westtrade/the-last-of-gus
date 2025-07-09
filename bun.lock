@@ -47,11 +47,9 @@
       "name": "@westtrade/tlg-server",
       "version": "0.0.2",
       "bin": {
-        "tlg-server": "src/cli/index.js"
+        "tlg-server": "src/cli/index.js",
       },
       "dependencies": {
-        "@types/jsonwebtoken": "^9.0.10",
-        "@types/lodash": "^4.17.20",
         "bcryptjs": "^3.0.2",
         "bull": "^4.16.5",
         "cac": "^6.7.14",
@@ -71,6 +69,8 @@
         "@types/bun": "latest",
       },
       "peerDependencies": {
+        "@types/jsonwebtoken": "^9.0.10",
+        "@types/lodash": "^4.17.20",
         "typescript": "^5.0.0",
       },
     },

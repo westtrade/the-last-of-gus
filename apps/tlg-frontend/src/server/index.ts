@@ -3,7 +3,6 @@ import { createServer as createViteServer } from "vite";
 import { connect } from "elysia-connect-middleware";
 
 import { broker } from "@westtrade/tlg-server";
-
 await broker.start();
 
 const vite = await createViteServer({
@@ -14,6 +13,8 @@ const auth = new Elysia({ prefix: "/auth" })
 	.get(
 		"/me",
 		async ({ cookie }) => {
+			await broker.waitForServices(["users"]);
+
 			const result = await broker.call("users.me", undefined, {
 				meta: {
 					token: cookie.sessionToken.toString(),
@@ -28,14 +29,33 @@ const auth = new Elysia({ prefix: "/auth" })
 			}),
 		}
 	)
+
+	.post(
+		"/logout",
+		async ({ cookie }) => {
+			cookie.sessionToken.remove();
+
+			return { success: true };
+		},
+		{
+			cookie: t.Object({
+				sessionToken: t.Optional(t.String()),
+			}),
+		}
+	)
+
 	.post(
 		"/login",
 		async ({ body, cookie }) => {
+			await broker.waitForServices(["users"]);
+
 			const result = await broker.call("users.createOrLogin", body);
-			cookie.sessionToken.value = result.token;
-			cookie.sessionToken.path = "/";
-			cookie.sessionToken.httpOnly = true;
-			// cookie.sessionToken.sameSite = "strict";
+			cookie.sessionToken.set({
+				value: result.token,
+				path: "/",
+				httpOnly: true,
+				// sameSite: "strict"
+			});
 
 			return result;
 		},
@@ -54,6 +74,8 @@ const rounds = new Elysia({ prefix: "/rounds" })
 	.post(
 		"/tap",
 		async ({ body, cookie }) => {
+			await broker.waitForServices(["taps"]);
+
 			const tap = await broker.call("taps.tap", body, {
 				meta: {
 					token: cookie.sessionToken.toString(),
@@ -71,9 +93,12 @@ const rounds = new Elysia({ prefix: "/rounds" })
 			}),
 		}
 	)
+
 	.get(
 		"/",
 		async ({ query }) => {
+			await broker.waitForServices(["rounds"]);
+
 			return broker.call("rounds.list", {
 				pageSize: 16,
 				sort: "-start",
@@ -93,9 +118,12 @@ const rounds = new Elysia({ prefix: "/rounds" })
 			),
 		}
 	)
+
 	.get(
 		"/:roundId",
 		async ({ params: { roundId } }) => {
+			await broker.waitForServices(["rounds"]);
+
 			return broker.call("rounds.get", { id: roundId });
 		},
 		{
@@ -107,6 +135,8 @@ const rounds = new Elysia({ prefix: "/rounds" })
 	.post(
 		"/",
 		async ({ cookie }) => {
+			await broker.waitForServices(["users", "rounds"]);
+
 			const user = await broker.call("users.me", undefined, {
 				meta: {
 					token: cookie.sessionToken.toString(),

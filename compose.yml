@@ -9,8 +9,6 @@ services:
     services:
         image: oven/bun:1.2.18
         working_dir: /usr/src/app
-        ports:
-            - "3000:3000"
         volumes:
             - ./:/usr/src/app
             - ./data:/usr/src/app/apps/tlg-server/data
@@ -22,12 +20,29 @@ services:
             - redis
         environment:
             TRANSPORTER: redis://redis:6379
+            REDIS_QUEUE_ENDPOINT: redis://redis:6379
+            SERVICES: taps,rounds
+
+    service-user:
+        image: oven/bun:1.2.18
+        working_dir: /usr/src/app
+        volumes:
+            - ./:/usr/src/app
+            - ./data:/usr/src/app/apps/tlg-server/data
+        restart: always
+        command: bun run --filter="@westtrade/tlg-server" start
+        networks:
+            - the-last-of-gus-network
+        depends_on:
+            - redis
+        environment:
+            TRANSPORTER: redis://redis:6379
+            REDIS_QUEUE_ENDPOINT: redis://redis:6379
+            SERVICES: users
 
     service-taps:
         image: oven/bun:1.2.18
         working_dir: /usr/src/app
-        ports:
-            - "3000:3000"
         volumes:
             - ./:/usr/src/app
             - ./data:/usr/src/app/apps/tlg-server/data
@@ -39,7 +54,91 @@ services:
             - redis
         environment:
             TRANSPORTER: redis://redis:6379
+            REDIS_QUEUE_ENDPOINT: redis://redis:6379
             SERVICES: taps
+
+    frontend:
+        image: oven/bun:1.2.18
+        working_dir: /usr/src/app
+        volumes:
+            - ./:/usr/src/app
+        restart: always
+        command: bun run --filter="@westtrade/tlg-frontend" start
+        networks:
+            - the-last-of-gus-network
+        depends_on:
+            - services
+            - service-taps
+            - redis
+        environment:
+            TRANSPORTER: redis://redis:6379
+            REDIS_QUEUE_ENDPOINT: redis://redis:6379
+            LOG_LEVEL: fatal
+            SERVICES: taps,rounds
+
+        ports:
+            - "3000:3000"
+
+    frontend_1:
+        image: oven/bun:1.2.18
+        working_dir: /usr/src/app
+        volumes:
+            - ./:/usr/src/app
+        restart: always
+        command: bun run --filter="@westtrade/tlg-frontend" start
+        networks:
+            - the-last-of-gus-network
+        depends_on:
+            - services
+            - service-taps
+            - redis
+        environment:
+            TRANSPORTER: redis://redis:6379
+            REDIS_QUEUE_ENDPOINT: redis://redis:6379
+            LOG_LEVEL: fatal
+            SERVICES: taps,rounds
+            HTTP_PORT: 3001
+
+    frontend_2:
+        image: oven/bun:1.2.18
+        working_dir: /usr/src/app
+        volumes:
+            - ./:/usr/src/app
+        restart: always
+        command: bun run --filter="@westtrade/tlg-frontend" start
+        networks:
+            - the-last-of-gus-network
+        depends_on:
+            - services
+            - service-taps
+            - redis
+        environment:
+            TRANSPORTER: redis://redis:6379
+            REDIS_QUEUE_ENDPOINT: redis://redis:6379
+            LOG_LEVEL: fatal
+            SERVICES: taps,rounds
+            HTTP_PORT: 3002
+
+    caddy:
+        image: caddy:2.8.4-alpine
+        ports:
+            - "80:80"
+            - "443:443"
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro
+            - caddy_data:/data
+            - caddy_config:/config
+        networks:
+            - the-last-of-gus-network
+        depends_on:
+            - frontend
+            - frontend_1
+            - frontend_2
+        restart: always
+
+volumes:
+    caddy_data:
+    caddy_config:
 
 networks:
     the-last-of-gus-network:

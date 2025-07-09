@@ -11,7 +11,7 @@ import {
 } from "@tanstack/react-query";
 import clsx from "clsx";
 import { api } from "lib/api";
-import { Loader, useNow } from "shared";
+import { IconLogout, Loader, useNow } from "shared";
 import dayjs from "dayjs";
 import SimpleBar from "simplebar-react";
 import { Link } from "react-router";
@@ -39,6 +39,20 @@ export const Rounds = ({ className }: Props) => {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ["roundsList"] });
+		},
+	});
+
+	const logoutMutation = useMutation({
+		mutationFn: async () => {
+			const { data, error } = await api.auth.logout.post();
+			if (error) {
+				throw error;
+			}
+
+			return data;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ["auth"] });
 		},
 	});
 
@@ -90,7 +104,8 @@ export const Rounds = ({ className }: Props) => {
 
 			const reachedBottomNewState =
 				scrollabelElement?.scrollHeight ===
-				scrollabelElement?.scrollTop + scrollabelElement?.clientHeight;
+				(scrollabelElement?.scrollTop || 0) +
+					(scrollabelElement?.clientHeight || 0);
 
 			if (
 				reachedBottomNewState !== reachBottom &&
@@ -119,6 +134,14 @@ export const Rounds = ({ className }: Props) => {
 					""
 				)}
 				<div className={style.username}>{me?.username}</div>
+
+				<button
+					className={style.logoutButton}
+					onClick={logoutMutation.mutate}
+					disabled={logoutMutation.isPending}
+				>
+					<IconLogout />
+				</button>
 			</div>
 
 			<div className={style.roundsTable}>

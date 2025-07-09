@@ -1,34 +1,18 @@
-import { ServiceBroker, type ServiceSchema } from "moleculer";
-import * as services from "./services";
-import { SERVICES } from "../moleculer-config/config";
+import { ServiceBroker, type BrokerOptions } from "moleculer";
 import moleculerConfig from "../moleculer-config/moleculer.config";
+import { loadServices } from "./libs";
+import * as services from "./services";
+
+import { SERVICES } from "../moleculer-config/config";
 
 export const broker = new ServiceBroker({
-	nodeID: process.env.NODE_ID || `tlg-server-node-${process.pid}`,
+	nodeID:
+		process.env.NODE_ID ||
+		`tlg-server-node-${process.pid}-${Math.random()
+			.toString(36)
+			.substring(7)}`,
 	...moleculerConfig,
-});
-
-function loadServices(
-	broker: ServiceBroker,
-	availableServices: Record<string, ServiceSchema<any>>,
-	enabledServices: string
-) {
-	const services =
-		enabledServices === "*"
-			? Object.keys(availableServices)
-			: enabledServices.split(",").map((service) => service.trim());
-
-	for (const service of services) {
-		if (!availableServices[service]) {
-			throw new Error(
-				`Service ${service} not found. Available services: ${Object.keys(
-					availableServices
-				).join(", ")}	`
-			);
-		}
-		broker.createService(availableServices[service]);
-	}
-}
+} as BrokerOptions);
 
 loadServices(
 	broker,

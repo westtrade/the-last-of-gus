@@ -1,4 +1,6 @@
+import { HTTP_PORT } from "server/config";
 import { app } from "./src/server";
 
-app.listen(3000);
-console.log("Server running at http://localhost:3000");
+app.listen(HTTP_PORT, (server) => {
+	console.log(`🚀 Server started at http://localhost:${HTTP_PORT}`);
+});

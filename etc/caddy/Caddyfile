@@ -1,0 +1,5 @@
+gussworld.omdbot.fun {
+    reverse_proxy frontend:3001 frontend_1:3002 frontend_2:3003 {
+        lb_policy round_robin
+    }
+}

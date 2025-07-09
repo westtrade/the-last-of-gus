@@ -1,22 +1,17 @@
 import { Elysia, t } from "elysia";
 import { createServer as createViteServer } from "vite";
 import { connect } from "elysia-connect-middleware";
+import { staticPlugin } from "@elysiajs/static";
 
-import { broker, UserResponse } from "@westtrade/tlg-server";
+import { broker, type UserResponse } from "@westtrade/tlg-server";
+import { NODE_ENV } from "./config";
 await broker.start();
-
-console.log(process.env.HTTP_PORT);
-
-const vite = await createViteServer({
-	server: { middlewareMode: true },
-});
 
 const auth = new Elysia({ prefix: "/auth" })
 	.get(
 		"/me",
 		async ({ cookie }) => {
 			await broker.waitForServices(["users"]);
-
 			const result = await broker.call<UserResponse, undefined>(
 				"users.me",
 				undefined,
@@ -186,6 +181,21 @@ export const app = new Elysia()
 			return api.handle(request);
 		}
 	})
-	.use(connect(vite.middlewares));
+	.use(
+		staticPlugin({
+			assets: "dist",
+			prefix: "",
+			alwaysStatic: true,
+			indexHTML: true,
+		})
+	);
+
+if (NODE_ENV !== "production") {
+	const vite = await createViteServer({
+		server: { middlewareMode: true },
+	});
+
+	app.use(connect(vite.middlewares));
+}
 
 export type ServerApp = typeof app;

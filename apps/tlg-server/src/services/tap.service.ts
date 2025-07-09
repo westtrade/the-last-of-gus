@@ -1,30 +1,19 @@
-import type {
-	ServiceSchema,
-	Context,
-	BrokerNode,
-	ServiceBroker,
-} from "moleculer";
-import DbService, { MemoryAdapter } from "moleculer-db";
+import type { ServiceSchema, Context, ServiceBroker } from "moleculer";
+import DbService from "moleculer-db";
 import QueueService from "moleculer-bull";
-
-import { REDIS_QUEUE_ENDPOINT } from "../../moleculer-config/config";
 import type { Job } from "bull";
 import { RedisDBAdapter } from "../adapters/RedisDBAdapter";
-import {
-	TapModel,
-	UserModel,
-	type AuthMeta,
-	type FindOneTapParams,
-	type GetUserParams,
-	type RawTapModel,
-	type TapResponse,
-	type UserResponse,
-} from "../models";
 import type {
+	TapModel,
+	FindOneTapParams,
+	GetUserParams,
+	RawTapModel,
+	TapResponse,
+	UserResponse,
 	GetRoundParams,
-	RoundModel,
 	RoundResponse,
-} from "../models/round.model";
+} from "../models";
+import { REDIS_QUEUE_ENDPOINT } from "../../moleculer-config/config";
 
 export const TapService: ServiceSchema = {
 	name: "taps",
@@ -51,6 +40,7 @@ export const TapService: ServiceSchema = {
 
 				const broker = this.broker as ServiceBroker;
 				const adapter = this.adapter as RedisDBAdapter<RawTapModel>;
+				const settings = this.settings as any;
 
 				const [user, round] = await Promise.all([
 					broker.call<UserResponse, GetUserParams>("users.get", {
@@ -60,6 +50,9 @@ export const TapService: ServiceSchema = {
 						id: roundId,
 					}),
 				]);
+
+				let bestScore = round.bestScore ?? 0;
+				let winner = round.winner ?? null;
 
 				if (round.status !== "active") {
 					throw new Error("round_not_active");
@@ -77,28 +70,35 @@ export const TapService: ServiceSchema = {
 				const addScore =
 					user.role === "nikita" ? 0 : totalTaps % 11 === 0 ? 10 : 1;
 
-				if (rawTap) {
+				if (rawTap !== null) {
 					rawTap = await adapter.updateById(rawTap._id, {
 						score: rawTap.score + addScore,
 						taps: rawTap.taps + 1,
 						userId,
 						roundId,
 					});
-				} else {
-					if (!rawTap) {
-						rawTap = await adapter.insert({
-							userId,
-							roundId,
-							taps: 1,
-							score: addScore,
-						});
-					}
+				}
+
+				if (rawTap === null) {
+					rawTap = (await adapter.insert({
+						userId,
+						roundId,
+						taps: 1,
+						score: addScore,
+					})) satisfies RawTapModel;
+				}
+
+				if (rawTap.score > bestScore) {
+					bestScore = rawTap.score;
+					winner = userId;
 				}
 
 				await broker.call("rounds.update", {
 					id: roundId,
 					taps: round.taps + 1,
 					totalScore: round.totalScore + addScore,
+					bestScore,
+					winner,
 				});
 
 				if (!rawTap) {
@@ -107,7 +107,7 @@ export const TapService: ServiceSchema = {
 
 				const tap = adapter.afterRetrieveTransformID<TapModel>(
 					rawTap,
-					this.settings.idField
+					settings.idField
 				);
 
 				return {

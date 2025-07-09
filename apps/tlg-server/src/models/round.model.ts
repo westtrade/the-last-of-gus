@@ -11,6 +11,7 @@ export type RoundModel = {
 	totalScore: number;
 	taps: number;
 	winnerUser: UserModel | null;
+	bestScore: number;
 };
 
 export type RawRoundModel = Omit<RoundModel, "id" | "winnerUser"> & {

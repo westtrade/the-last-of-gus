@@ -5,9 +5,15 @@ import path from "node:path";
 
 import {
 	COOLDOWN_DURATION,
+	REDIS_QUEUE_ENDPOINT,
 	ROUND_DURATION,
 } from "../../moleculer-config/config";
-import type { RoundModel, RoundResponse } from "../models/round.model";
+import type {
+	RawRoundModel,
+	RoundModel,
+	RoundResponse,
+} from "../models/round.model";
+import { RedisDBAdapter } from "../adapters";
 
 function mapRound(round: RoundModel) {
 	const now = new Date();
@@ -29,9 +35,7 @@ export const RoundService: ServiceSchema = {
 	name: "rounds",
 	mixins: [DbService],
 
-	adapter: new MemoryAdapter({
-		filename: path.resolve(__dirname, "../../data/rounds.db"),
-	}),
+	adapter: new RedisDBAdapter<RawRoundModel>(REDIS_QUEUE_ENDPOINT),
 
 	settings: {
 		idField: "id",
@@ -44,6 +48,7 @@ export const RoundService: ServiceSchema = {
 			"totalScore",
 			"taps",
 			"winnerUser",
+			"bestScore",
 		],
 
 		populate: {

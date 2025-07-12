@@ -1,21 +1,15 @@
-import React, {
-	useCallback,
-	useEffect,
-	useState,
-	type ReactEventHandler,
-} from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import {
 	useInfiniteQuery,
 	useMutation,
 	useQueryClient,
 } from "@tanstack/react-query";
 import clsx from "clsx";
-import { api } from "lib/api";
-import { IconLogout, Loader, useNow } from "shared";
+import { api, IconLogout, Loader, roundState, useNow } from "@shared";
 import dayjs from "dayjs";
 import SimpleBar from "simplebar-react";
 import { Link } from "react-router";
-import { roundState } from "lib/roundState";
+import type { ListResponse, RoundResponse } from "@westtrade/tlg-server";
 
 import "simplebar-react/dist/simplebar.min.css";
 import style from "./Rounds.module.scss";
@@ -24,24 +18,12 @@ type Props = {
 	className?: string;
 };
 
-export const Rounds = ({ className }: Props) => {
+const SCROLL_CHECK_OFFSET = 20;
+const PAGE_SIZE = 25;
+
+const Header = () => {
 	const queryClient = useQueryClient();
 	const me = queryClient.getQueryData(["auth"]);
-
-	const createRoundMutation = useMutation({
-		mutationFn: async () => {
-			const { data, error } = await api.rounds.post();
-			if (error) {
-				throw error;
-			}
-
-			return data;
-		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["roundsList"] });
-		},
-	});
-
 	const logoutMutation = useMutation({
 		mutationFn: async () => {
 			const { data, error } = await api.auth.logout.post();
@@ -56,24 +38,97 @@ export const Rounds = ({ className }: Props) => {
 		},
 	});
 
+	const createRoundMutation = useMutation({
+		mutationFn: async () => {
+			const { data, error } = await api.rounds.post();
+			if (error?.value) {
+				throw error?.value;
+			}
+
+			return data;
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["roundsCount"],
+			});
+
+			queryClient.invalidateQueries({
+				queryKey: ["roundsList"],
+			});
+		},
+	});
+
 	const handleCreateRound = useCallback(() => {
 		createRoundMutation.mutate();
 	}, [createRoundMutation]);
 
-	const rounds = useInfiniteQuery({
+	return (
+		<div className={style.header}>
+			{me?.role === "admin" ? (
+				<button
+					role="button"
+					className={style.createRound}
+					onClick={handleCreateRound}
+					disabled={createRoundMutation.isPending}
+				>
+					Create round
+					{createRoundMutation.isPending && <Loader />}
+				</button>
+			) : (
+				""
+			)}
+			<div className={style.username}>{me?.username}</div>
+
+			<button
+				className={style.logoutButton}
+				onClick={logoutMutation.mutate}
+				disabled={logoutMutation.isPending}
+			>
+				<IconLogout />
+			</button>
+		</div>
+	);
+};
+
+const Row = ({ id, start, end }: RoundResponse) => {
+	const now = useNow();
+
+	return (
+		<Link
+			key={id}
+			to={`/round/${id}`}
+			className={clsx(style.row, style.roundsRow)}
+		>
+			<div className={style.cell}>{id}</div>
+			<div className={style.cell}>
+				{dayjs(start).format("DD/MM/YY HH:mm:ss")} -&nbsp;
+				{dayjs(end).format("DD/MM/YY HH:mm:ss")}
+			</div>
+			<div className={style.cell}>
+				{roundState(now.value, start, end)}
+			</div>
+		</Link>
+	);
+};
+
+export const Rounds = ({ className }: Props) => {
+	const scrollableElementRef =
+		useRef<Parameters<typeof SimpleBar>[0]["ref"]>(null);
+
+	const roundsQuery = useInfiniteQuery<ListResponse<RoundResponse>>({
 		queryKey: ["roundsList"],
 		initialPageParam: 1,
-		getNextPageParam: (lastPage, pages) => {
-			if (lastPage.totalPages === lastPage.page) {
-				return;
-			}
-
-			return lastPage.page + 1;
+		refetchInterval: 1_000,
+		getNextPageParam: ({ page, totalPages, rows }) => {
+			return page === totalPages || rows.length === 0
+				? undefined
+				: page + 1;
 		},
 		queryFn: async (params) => {
 			const { data, error } = await api.rounds.get({
 				query: {
 					page: params.pageParam,
+					pageSize: PAGE_SIZE,
 				},
 			});
 
@@ -85,124 +140,67 @@ export const Rounds = ({ className }: Props) => {
 		},
 	});
 
-	const now = useNow();
+	const checkBottomIsReached = useCallback(() => {
+		const scrollableElement =
+			scrollableElementRef.current?.contentWrapperEl;
 
-	const [reachBottom, setReachBottom] = useState(false);
-	useEffect(() => {
-		if (reachBottom) {
-			rounds.fetchNextPage().then(() => {
-				setReachBottom(false);
-			});
+		const {
+			scrollHeight = 0,
+			scrollTop = 0,
+			clientHeight = 0,
+		} = scrollableElement;
+
+		const reachedBottom =
+			scrollHeight - SCROLL_CHECK_OFFSET <= scrollTop + clientHeight;
+
+		if (
+			!scrollableElement ||
+			!reachedBottom ||
+			!roundsQuery.hasNextPage ||
+			roundsQuery.isFetchingNextPage
+		) {
+			return;
 		}
-	}, [reachBottom]);
 
-	const reachBottomHandler = useCallback<ReactEventHandler<HTMLDivElement>>(
-		(event) => {
-			const scrollabelElement = event.currentTarget.querySelector(
-				".simplebar-content-wrapper"
-			);
+		roundsQuery.fetchNextPage();
+	}, [scrollableElementRef.current, roundsQuery]);
 
-			const reachedBottomNewState =
-				scrollabelElement?.scrollHeight ===
-				(scrollabelElement?.scrollTop || 0) +
-					(scrollabelElement?.clientHeight || 0);
-
-			if (
-				reachedBottomNewState !== reachBottom &&
-				reachBottom === false
-			) {
-				setReachBottom(reachedBottomNewState);
-			}
-		},
-		[reachBottom]
-	);
+	useEffect(() => {
+		if (!roundsQuery.isFetching) {
+			checkBottomIsReached();
+		}
+	}, [roundsQuery]);
 
 	return (
 		<div className={clsx(style.wrapper, className)}>
-			<div className={style.panel}>
-				{me?.role === "admin" ? (
-					<button
-						role="button"
-						className={style.createRound}
-						onClick={handleCreateRound}
-						disabled={createRoundMutation.isPending}
-					>
-						Create round
-						{createRoundMutation.isPending && <Loader />}
-					</button>
-				) : (
-					""
-				)}
-				<div className={style.username}>{me?.username}</div>
-
-				<button
-					className={style.logoutButton}
-					onClick={logoutMutation.mutate}
-					disabled={logoutMutation.isPending}
-				>
-					<IconLogout />
-				</button>
-			</div>
+			<Header />
 
 			<div className={style.roundsTable}>
-				{rounds.data?.pages?.at?.(0)?.total === 0 && (
+				{roundsQuery.data?.pages.at?.(0)?.total === 0 && (
 					<div className={style.empty}>Nothing yet...</div>
 				)}
 
-				{rounds.data?.pages?.at?.(0)?.total !== 0 && (
+				{roundsQuery.data?.pages?.at?.(0)?.total !== 0 && (
 					<>
+						<div
+							className={clsx(style.roundsHead, style.roundsRow)}
+						>
+							<div className={style.headCell}>ID</div>
+							<div className={style.headCell}>Start - End</div>
+							<div className={style.headCell}>Status</div>
+						</div>
+
 						<SimpleBar
 							className={style.tableContent}
-							onScrollCapture={reachBottomHandler}
+							onScrollCapture={checkBottomIsReached}
+							ref={scrollableElementRef}
 						>
-							<div
-								className={clsx(
-									style.roundsHead,
-									style.roundsRow
-								)}
-							>
-								<div className={style.headCell}>ID</div>
-								<div className={style.headCell}>
-									Start - End
-								</div>
-								<div className={style.headCell}>Status</div>
-							</div>
-
-							{rounds.data?.pages.map(({ rows }, idx) => {
+							{roundsQuery.data?.pages.map(({ rows }, idx) => {
 								return (
 									<React.Fragment key={idx}>
-										{rows?.map(({ id, start, end }) => {
-											return (
-												<Link
-													key={id}
-													to={`/round/${id}`}
-													className={clsx(
-														style.row,
-														style.roundsRow
-													)}
-												>
-													<div className={style.cell}>
-														{id}
-													</div>
-													<div className={style.cell}>
-														{dayjs(start).format(
-															"DD/MM/YY HH:mm:ss"
-														)}{" "}
-														-&nbsp;
-														{dayjs(end).format(
-															"DD/MM/YY HH:mm:ss"
-														)}
-													</div>
-													<div className={style.cell}>
-														{roundState(
-															now.value,
-															start,
-															end
-														)}
-													</div>
-												</Link>
-											);
-										})}
+										{rows?.map((row) => (
+											<Row {...row} key={row.id} />
+										))}
 									</React.Fragment>
 								);
 							})}

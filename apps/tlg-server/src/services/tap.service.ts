@@ -1,5 +1,7 @@
 import type { ServiceSchema, Context, ServiceBroker } from "moleculer";
 import DbService from "moleculer-db";
+
+//@ts-ignore
 import QueueService from "moleculer-bull";
 import type { Job } from "bull";
 import { RedisDBAdapter } from "../adapters/RedisDBAdapter";
@@ -38,9 +40,10 @@ export const TapService: ServiceSchema = {
 			): Promise<TapResponse> {
 				const { userId, roundId } = job.data;
 
-				const broker = this.broker as ServiceBroker;
-				const adapter = this.adapter as RedisDBAdapter<RawTapModel>;
-				const settings = this.settings as any;
+				const self = this as typeof TapService;
+				const broker = self.broker as ServiceBroker;
+				const adapter = self.adapter as RedisDBAdapter<RawTapModel>;
+				const settings = self.settings as any;
 
 				const [user, round] = await Promise.all([
 					broker.call<UserResponse, GetUserParams>("users.get", {
@@ -70,12 +73,14 @@ export const TapService: ServiceSchema = {
 				const addScore =
 					user.role === "nikita" ? 0 : totalTaps % 11 === 0 ? 10 : 1;
 
-				if (rawTap !== null) {
+				if (rawTap !== null && rawTap !== undefined) {
 					rawTap = await adapter.updateById(rawTap._id, {
-						score: rawTap.score + addScore,
-						taps: rawTap.taps + 1,
-						userId,
-						roundId,
+						$set: {
+							score: (rawTap.score ?? 0) + addScore,
+							taps: (rawTap.taps ?? 0) + 1,
+							userId,
+							roundId,
+						},
 					});
 				}
 

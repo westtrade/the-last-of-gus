@@ -1,0 +1,24 @@
+.wrapper {
+	position: relative;
+	display: inline-flex;
+	gap: 0.25rem;
+	align-items: center;
+	transition: all 0.2s ease-in-out;
+	width: 125px;
+}
+
+.flyingNumber {
+	position: absolute;
+	right: 5px;
+	top: -5px;
+	display: flex;
+	white-space: nowrap;
+}
+
+.increase {
+	color: #22c55e;
+}
+
+.decrease {
+	color: #ef4444;
+}

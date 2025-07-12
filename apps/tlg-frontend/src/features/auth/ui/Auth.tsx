@@ -1,19 +1,20 @@
-import { useCallback, type ReactEventHandler } from "react";
+import { useCallback, useEffect, type ReactEventHandler } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader } from "shared/ui";
-
-import { api } from "lib/api";
+import { Loader, api } from "@shared";
+import type { CreateOrLoginParams } from "@westtrade/tlg-server";
 
 import style from "./Auth.module.scss";
+import { authErrors } from "../const";
 
 export const Auth = () => {
 	const queryClient = useQueryClient();
 
-	const mutation = useMutation({
-		mutationFn: async (params) => {
-			const { data, error } = await api.auth.login.post(params);
-			if (error) {
-				throw error;
+	const createOrLogin = useMutation({
+		mutationFn: async (credentials: CreateOrLoginParams) => {
+			const { data, error } = await api.auth.login.post(credentials);
+
+			if (error?.value) {
+				throw error?.value;
 			}
 
 			return data;
@@ -28,12 +29,13 @@ export const Auth = () => {
 			e.preventDefault();
 
 			const formData = new FormData(e.currentTarget);
-			mutation.mutate({
-				username: formData.get("username"),
-				password: formData.get("password"),
+
+			createOrLogin.mutate({
+				username: formData.get("username")?.toString() ?? "",
+				password: formData.get("password")?.toString() ?? "",
 			});
 		},
-		[mutation]
+		[createOrLogin]
 	);
 
 	return (
@@ -41,36 +43,49 @@ export const Auth = () => {
 			<label htmlFor="field-username" className={style.label}>
 				Username
 			</label>
-			<input
-				type="text"
-				className={style.input}
-				name="username"
-				id="field-username"
-				autoComplete="username"
-			/>
+
+			<div className={style.inputWrapper}>
+				<div className={style.inputInner}>
+					<input
+						type="text"
+						className={style.input}
+						name="username"
+						id="field-username"
+						autoComplete="username"
+						autoFocus={true}
+					/>
+				</div>
+			</div>
 
 			<label htmlFor="field-password" className={style.label}>
 				Password
 			</label>
-			<input
-				type="password"
-				className={style.input}
-				name="password"
-				id="field-password"
-				autoComplete="current-password"
-			/>
+
+			<div className={style.inputWrapper}>
+				<div className={style.inputInner}>
+					<input
+						type="password"
+						className={style.input}
+						name="password"
+						id="field-password"
+						autoComplete="current-password"
+					/>
+				</div>
+			</div>
 
 			<button
-				disabled={mutation.isPending}
+				disabled={createOrLogin.isPending}
 				type="submit"
 				className={style.submit}
 			>
 				Login
-				{mutation.isPending && <Loader />}
+				{createOrLogin.isPending && <Loader />}
 			</button>
 
-			{mutation.error && (
-				<div className={style.error}>User not found</div>
+			{createOrLogin.error && (
+				<div className={style.error}>
+					{authErrors[createOrLogin.error.message] ?? "Unknown error"}
+				</div>
 			)}
 		</form>
 	);

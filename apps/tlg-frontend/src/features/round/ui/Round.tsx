@@ -1,18 +1,18 @@
-import React, {
-	useCallback,
-	useMemo,
-	useRef,
-	useState,
-	type ReactNode,
-} from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useParams } from "react-router";
-import { api } from "lib/api";
-import { Character, useNow } from "shared";
-import { roundState } from "lib/roundState";
+import {
+	api,
+	Character,
+	formatTime,
+	roundState,
+	useNow,
+	ColorNumber,
+	FormatNumber,
+} from "@shared";
+
 import dayjs from "dayjs";
-import { formatTime } from "lib/formatTime";
 import duration from "dayjs/plugin/duration";
 import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(duration);
@@ -47,6 +47,8 @@ export const Round = ({ className }: Props) => {
 		enabled: Boolean(params.roundId),
 	});
 
+	const [tapData, setTapData] = useState(null);
+
 	const tap = useMutation<{
 		roundId: string;
 	}>({
@@ -61,13 +63,14 @@ export const Round = ({ className }: Props) => {
 
 		onSuccess(data, variables, context) {
 			hitRef.current = data.addScore;
+			setTapData(data);
 		},
 	});
 
 	const now = useNow();
 
 	const roundProgress = useMemo(() => {
-		const myScore = tap.data?.score ?? 0;
+		const myScore = tapData?.score ?? 0;
 		const state = roundState(now.value, round.data?.start, round.data?.end);
 
 		const message =
@@ -86,7 +89,7 @@ export const Round = ({ className }: Props) => {
 			message,
 			state,
 		};
-	}, [round.data, now, tap.data]);
+	}, [round.data, now, tapData]);
 
 	const onTapHandler = useCallback(() => {
 		tap.mutate(params);
@@ -117,7 +120,9 @@ export const Round = ({ className }: Props) => {
 				<div>{roundProgress.message}</div>
 
 				{["active", "finished"].includes(roundProgress.state) && (
-					<div>My score: {roundProgress.myScore}</div>
+					<div>
+						My score: <ColorNumber value={roundProgress.myScore} />{" "}
+					</div>
 				)}
 			</div>
 		</div>

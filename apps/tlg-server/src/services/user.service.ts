@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import path from "node:path";
 import _, { omit } from "lodash";
+import { isAdmin, isNikita } from "../libs";
 
 import { JWT_SECRET } from "../../moleculer-config/config";
 import type {
@@ -14,7 +15,6 @@ import type {
 	UserResponse,
 	CreateOrLoginParams,
 } from "../models";
-import { isAdmin, isNikita } from "../libs";
 
 export const UserService: ServiceSchema = {
 	name: "users",
@@ -61,7 +61,10 @@ export const UserService: ServiceSchema = {
 		},
 
 		createOrLogin: {
-			params: { username: "string", password: "string" },
+			params: {
+				username: "string|min:3|max:16",
+				password: "string|min:3|max:16",
+			},
 			async handler(ctx: Context<CreateOrLoginParams>) {
 				const { username, password: passwordInput } = ctx.params;
 
@@ -73,7 +76,7 @@ export const UserService: ServiceSchema = {
 					if (
 						!(await bcrypt.compare(passwordInput, rawUser.password))
 					) {
-						throw new Error("invalid_password");
+						throw new Error("user_not_found");
 					}
 				} else {
 					const role = isAdmin(username)

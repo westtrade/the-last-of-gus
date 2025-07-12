@@ -107,7 +107,9 @@ export class RedisDBAdapter<T> implements DbAdapter {
 		searchFields,
 		limit: limitInput,
 		offset: offsetInput,
-	}: FilterOptions): Promise<T[]> {
+		sort,
+		fields,
+	}: CursorOptions): Promise<T[] | Partial<T>[]> {
 		const searchFieldsArray = Array.isArray(searchFields)
 			? searchFields
 			: searchFields?.split(",").map((field) => field.trim());
@@ -116,7 +118,7 @@ export class RedisDBAdapter<T> implements DbAdapter {
 		const limit = Number(limitInput ?? Infinity);
 
 		const results: T[] = [];
-		let index = 0;
+		// let index = 0;
 
 		const idField = this.service?.settings.idField;
 		if (query[idField]) {
@@ -129,19 +131,44 @@ export class RedisDBAdapter<T> implements DbAdapter {
 			search,
 			searchFieldsArray
 		)) {
-			if (index < offset) {
-				continue;
-			}
+			// if (index < offset) {
+			// 	continue;
+			// }
 
 			results.push(entity);
 
-			if (results.length >= limit) {
-				break;
-			}
-			index++;
+			// if (results.length >= limit) {
+			// 	break;
+			// }
+			// index++;
 		}
 
-		return results;
+		const sortFields = Array.isArray(sort)
+			? sort
+			: sort?.split(",").map((field) => field.trim()) || [];
+
+		const keys = sortFields?.map((field) => field.replace(/^-/, ""));
+		const orders = sortFields?.map((field) =>
+			field.startsWith("-") ? "desc" : "asc"
+		);
+
+		let dataPipeline = _<T | Partial<T>>(results);
+
+		if (sortFields.length) {
+			dataPipeline = dataPipeline.orderBy(keys, orders);
+		}
+
+		const pickedFields = Array.isArray(fields)
+			? fields
+			: fields?.split(",").map((field) => field.trim());
+
+		if (pickedFields?.length) {
+			dataPipeline = dataPipeline.map((entity) =>
+				_.pick(entity, pickedFields)
+			);
+		}
+
+		return dataPipeline.value().slice(offset, offset + limit);
 	}
 
 	/**
@@ -151,7 +178,9 @@ export class RedisDBAdapter<T> implements DbAdapter {
 	 * @returns {Promise}
 	 * @memberof RedisDBAdapter
 	 */
-	async findOne<Q extends QueryOptions, T>(query: Q): Promise<T | null> {
+	async findOne<Q extends QueryOptions, T>(
+		query: Q
+	): Promise<T | Partial<T> | null> {
 		const results = await this.find<T>({ query, limit: 1 });
 		return results.length > 0 ? results[0] : null;
 	}
@@ -310,7 +339,7 @@ export class RedisDBAdapter<T> implements DbAdapter {
 	 */
 	async updateMany<Q extends QueryOptions>(
 		query: Q,
-		update: object
+		{ $set: update }: { $set: object } = { $set: {} }
 	): Promise<number> {
 		const idField = this.service?.settings.idField;
 
@@ -318,7 +347,6 @@ export class RedisDBAdapter<T> implements DbAdapter {
 		const pipeline = this.redis.pipeline();
 
 		if (query[idField]) {
-			query["_id"] = query[idField];
 			delete query[idField];
 		}
 
@@ -351,13 +379,22 @@ export class RedisDBAdapter<T> implements DbAdapter {
 	 * @returns {Promise}
 	 * @memberof RedisDBAdapter
 	 */
-	async updateById<T>(id: string | number, update: object): Promise<T> {
+	async updateById<T>(
+		id: string | number,
+		{ $set: update }: { $set: object } = { $set: {} }
+	): Promise<T> {
 		const raw = await this.redis.get(this.makeKey(id));
 		if (!raw) {
 			throw new Error(`Entity with ID '${id}' not found`);
 		}
 
 		let entity: Record<string, any> = JSON.parse(raw);
+
+		delete update._id;
+
+		if (this.service.settings.idField) {
+			delete update[this.service.settings.idField];
+		}
 
 		const updatedEntity = {
 			...entity,
@@ -405,14 +442,19 @@ export class RedisDBAdapter<T> implements DbAdapter {
 	 * @returns {Promise}
 	 * @memberof RedisDBAdapter
 	 */
-	async removeById(id: number | string): Promise<any> {
+	async removeById(
+		id: number | string,
+		pipeline?: ChainableCommander
+	): Promise<any> {
 		const key = this.makeKey(id);
-		const pipeline = this.redis.pipeline();
+		const target = pipeline ?? this.redis.pipeline();
 
-		pipeline.del(key);
-		pipeline.srem(`${this.prefix}:ids`, id.toString());
+		target.del(key);
+		target.srem(`${this.prefix}:ids`, id.toString());
 
-		await pipeline.exec();
+		if (!pipeline) {
+			await target.exec();
+		}
 
 		return { id };
 	}
@@ -430,10 +472,7 @@ export class RedisDBAdapter<T> implements DbAdapter {
 		}
 
 		const pipeline = this.redis.pipeline();
-
-		ids.forEach((id) => pipeline.del(this.makeKey(id)));
-		pipeline.del(`${this.prefix}:ids`);
-
+		ids.forEach((id) => this.removeById(id, pipeline));
 		await pipeline.exec();
 	}
 

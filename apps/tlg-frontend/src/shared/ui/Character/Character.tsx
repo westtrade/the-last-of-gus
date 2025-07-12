@@ -269,8 +269,8 @@ export const Character: FC<Props> = ({
 						gradientUnits="userSpaceOnUse"
 						gradientTransform="translate(65.2336 64.456) rotate(34.3574) scale(64.8645)"
 					>
-						<stop stop-color="white" />
-						<stop offset="1" stop-color="white" stop-opacity="0" />
+						<stop stopColor="white" />
+						<stop offset="1" stopColor="white" stopOpacity="0" />
 					</radialGradient>
 					<radialGradient
 						id="paint1_radial_40_53"
@@ -280,8 +280,8 @@ export const Character: FC<Props> = ({
 						gradientUnits="userSpaceOnUse"
 						gradientTransform="translate(65.2336 64.456) rotate(34.3574) scale(64.8645)"
 					>
-						<stop stop-color="white" />
-						<stop offset="1" stop-color="white" stop-opacity="0" />
+						<stop stopColor="white" />
+						<stop offset="1" stopColor="white" stopOpacity="0" />
 					</radialGradient>
 					<radialGradient
 						id="paint2_radial_40_53"
@@ -291,8 +291,8 @@ export const Character: FC<Props> = ({
 						gradientUnits="userSpaceOnUse"
 						gradientTransform="translate(65.2336 64.456) rotate(34.3574) scale(64.8645)"
 					>
-						<stop stop-color="white" />
-						<stop offset="1" stop-color="white" stop-opacity="0" />
+						<stop stopColor="white" />
+						<stop offset="1" stopColor="white" stopOpacity="0" />
 					</radialGradient>
 					<radialGradient
 						id="paint3_radial_40_53"
@@ -302,8 +302,8 @@ export const Character: FC<Props> = ({
 						gradientUnits="userSpaceOnUse"
 						gradientTransform="translate(65.2336 64.456) rotate(34.3574) scale(64.8645)"
 					>
-						<stop stop-color="white" />
-						<stop offset="1" stop-color="white" stop-opacity="0" />
+						<stop stopColor="white" />
+						<stop offset="1" stopColor="white" stopOpacity="0" />
 					</radialGradient>
 					<radialGradient
 						id="paint4_radial_40_53"
@@ -313,8 +313,8 @@ export const Character: FC<Props> = ({
 						gradientUnits="userSpaceOnUse"
 						gradientTransform="translate(65.2336 64.456) rotate(34.3574) scale(64.8645)"
 					>
-						<stop stop-color="white" />
-						<stop offset="1" stop-color="white" stop-opacity="0" />
+						<stop stopColor="white" />
+						<stop offset="1" stopColor="white" stopOpacity="0" />
 					</radialGradient>
 					<radialGradient
 						id="paint5_radial_40_53"
@@ -324,8 +324,8 @@ export const Character: FC<Props> = ({
 						gradientUnits="userSpaceOnUse"
 						gradientTransform="translate(65.2336 64.456) rotate(34.3574) scale(64.8645)"
 					>
-						<stop stop-color="white" />
-						<stop offset="1" stop-color="white" stop-opacity="0" />
+						<stop stopColor="white" />
+						<stop offset="1" stopColor="white" stopOpacity="0" />
 					</radialGradient>
 				</defs>
 			</svg>
@@ -351,11 +351,11 @@ export const Character: FC<Props> = ({
 						gradientUnits="userSpaceOnUse"
 						gradientTransform="translate(62 14.5) scale(62 14.5)"
 					>
-						<stop offset="0.65" stop-color="#6FA535" />
+						<stop offset="0.65" stopColor="#6FA535" />
 						<stop
 							offset="1"
-							stop-color="#6FA535"
-							stop-opacity="0.2"
+							stopColor="#6FA535"
+							stopOpacity="0.2"
 						/>
 					</radialGradient>
 				</defs>

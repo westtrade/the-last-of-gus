@@ -58,9 +58,11 @@
 
         & > svg,
         & > img
-            pointer-events: none
             position: relative
             transform: translate(0, -15%) scale(1.4)
+            -webkit-user-drag: none; 
+            user-select: none; 
+
             &[data-level="1"]
                 transform: translate(0, -16%) scale(1.6)
                 
@@ -78,11 +80,11 @@
     &__shiny
         position: absolute
         left: 50%
-        bottom: -10%
+        bottom: -43%
         width: 300%
         transform: translate(-50%, 0)
         animation: rotateShiny 4s infinite
-        z-index: 5
+        z-index: 0
         opacity: 0
         pointer-events: none
 

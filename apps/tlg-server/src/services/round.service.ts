@@ -1,19 +1,18 @@
 import type { ServiceSchema, Context } from "moleculer";
-import DbService, { MemoryAdapter } from "moleculer-db";
+import DbService from "moleculer-db";
 import dayjs from "dayjs";
-import path from "node:path";
-
+import { RedisDBAdapter } from "../adapters";
 import {
 	COOLDOWN_DURATION,
 	REDIS_QUEUE_ENDPOINT,
 	ROUND_DURATION,
 } from "../../moleculer-config/config";
+
 import type {
 	RawRoundModel,
 	RoundModel,
 	RoundResponse,
 } from "../models/round.model";
-import { RedisDBAdapter } from "../adapters";
 
 function mapRound(round: RoundModel) {
 	const now = new Date();
@@ -85,6 +84,12 @@ export const RoundService: ServiceSchema = {
 	},
 
 	actions: {
+		clear: {
+			async handler(ctx) {
+				return this.adapter.clear();
+			},
+		},
+
 		create: {
 			params: {
 				start: "date|optional|convert",

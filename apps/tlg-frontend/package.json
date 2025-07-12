@@ -8,8 +8,7 @@
     "@types/react-dom": "^19.1.6",
     "@types/react-router": "^5.1.20",
     "@vitejs/plugin-react": "^4.6.0",
-    "vite": "^7.0.2",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite": "^7.0.2"
   },
   "peerDependencies": {
     "typescript": "^5.8.3"
@@ -31,13 +30,15 @@
     "lodash": "^4.17.21",
     "lodash.throttle": "^4.1.1",
     "millify": "^6.1.0",
+    "moleculer": "^0.14.35",
     "normalize.css": "^8.0.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router": "^7.6.3",
     "reset.css": "^2.0.2",
     "sass": "^1.89.2",
-    "simplebar-react": "^3.3.2"
+    "simplebar-react": "^3.3.2",
+    "vite-tsconfig-paths": "^5.1.4"
   },
   "scripts": {
     "dev": "bun --bun --watch .",

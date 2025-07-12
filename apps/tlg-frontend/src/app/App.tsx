@@ -1,12 +1,11 @@
 import { Route, Routes, Outlet, Link } from "react-router";
-import { Auth, Round, Rounds } from "features";
 import {
 	QueryClient,
 	QueryClientProvider,
 	useQuery,
 } from "@tanstack/react-query";
-import { api } from "lib/api";
-
+import { Auth, Round, Rounds } from "@features";
+import { api } from "@shared";
 import logoSrc from "./assets/title.png";
 
 const queryClient = new QueryClient();

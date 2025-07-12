@@ -13,6 +13,8 @@
 		"allowImportingTsExtensions": true,
 		"verbatimModuleSyntax": true,
 		"noEmit": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
 
 		// Best practices
 		"strict": true,
@@ -24,12 +26,16 @@
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false,
 
-		"baseUrl": "./src",
+		"baseUrl": ".",
 		"paths": {
-			"@app/*": ["./src/app/*"],
-			"@features/*": ["./src/features/*"],
-			"@shared/*": ["./src/shared/*"],
-			"@server/*": ["./src/server/*"]
+			"@app": ["src/app"],
+			"@app/*": ["src/app/*"],
+			"@features": ["src/features"],
+			"@features/*": ["src/features"],
+			"@shared": ["src/shared"],
+			"@shared/*": ["src/shared/*"],
+			"@server": ["src/server"],
+			"@server/*": ["src/server/*"]
 		}
 	}
 }

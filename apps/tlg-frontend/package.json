@@ -43,6 +43,7 @@
   "scripts": {
     "dev": "bun --bun --watch .",
     "start": "bun --bun .",
-    "build": "vite build"
+    "build": "vite build",
+    "server": "pm2 start ./ecosystem.config.cjs"
   }
 }

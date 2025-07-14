@@ -16,16 +16,18 @@ import type {
 
 function mapRound(round: RoundModel) {
 	const now = new Date();
-	const status = dayjs(now).isBefore(round.start)
-		? "cooldown"
-		: dayjs(now).isAfter(round.end)
-		? "finished"
-		: "active";
 
-	const result: RoundResponse = {
+	const result: Partial<RoundResponse> = {
 		...round,
-		status,
 	};
+
+	if ("status" in round) {
+		result.status = dayjs(now).isBefore(round.start)
+			? "cooldown"
+			: dayjs(now).isAfter(round.end)
+			? "finished"
+			: "active";
+	}
 
 	return result;
 }
@@ -45,23 +47,16 @@ export const RoundService: ServiceSchema = {
 			"cooldown",
 			"winner",
 			"totalScore",
+			"status",
 			"taps",
 			"winnerUser",
 			"bestScore",
 		],
 
-		populate: {
+		populates: {
 			winnerUser: {
-				action: "users.get",
-				params(ctx: any, doc: RoundModel) {
-					if (!doc.winner) {
-						return null;
-					}
-
-					return {
-						id: doc.winner,
-					};
-				},
+				action: "users.getSafe",
+				field: "winner",
 			},
 		},
 	},
@@ -115,10 +110,12 @@ export const RoundService: ServiceSchema = {
 						totalScore: 0,
 						taps: 0,
 						winner: null,
+						status: null,
 					}),
 
 					this.settings.idField
 				);
+				await ctx.broker.cacher?.clean("rounds.*");
 
 				return round;
 			},

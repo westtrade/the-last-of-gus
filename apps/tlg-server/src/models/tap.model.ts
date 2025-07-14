@@ -7,7 +7,7 @@ export type TapModel = {
 };
 
 export type RawTapModel = Omit<TapModel, "id"> & {
-	_id: string;
+	_id?: string;
 };
 
 export type TapResponse = TapModel & {

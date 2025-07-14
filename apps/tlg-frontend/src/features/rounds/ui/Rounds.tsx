@@ -9,21 +9,23 @@ import { api, IconLogout, Loader, roundState, useNow } from "@shared";
 import dayjs from "dayjs";
 import SimpleBar from "simplebar-react";
 import { Link } from "react-router";
-import type { ListResponse, RoundResponse } from "@westtrade/tlg-server";
+import type {
+	ListResponse,
+	RoundResponse,
+	UserResponse,
+} from "@westtrade/tlg-server";
+import type SimpleBarCore from "simplebar-core";
 
 import "simplebar-react/dist/simplebar.min.css";
 import style from "./Rounds.module.scss";
-
-type Props = {
-	className?: string;
-};
 
 const SCROLL_CHECK_OFFSET = 20;
 const PAGE_SIZE = 25;
 
 const Header = () => {
 	const queryClient = useQueryClient();
-	const me = queryClient.getQueryData(["auth"]);
+	const me = queryClient.getQueryData<UserResponse>(["auth"]);
+
 	const logoutMutation = useMutation({
 		mutationFn: async () => {
 			const { data, error } = await api.auth.logout.post();
@@ -48,10 +50,6 @@ const Header = () => {
 			return data;
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: ["roundsCount"],
-			});
-
 			queryClient.invalidateQueries({
 				queryKey: ["roundsList"],
 			});
@@ -81,7 +79,7 @@ const Header = () => {
 
 			<button
 				className={style.logoutButton}
-				onClick={logoutMutation.mutate}
+				onClick={() => logoutMutation.mutate()}
 				disabled={logoutMutation.isPending}
 			>
 				<IconLogout />
@@ -90,7 +88,14 @@ const Header = () => {
 	);
 };
 
-const Row = ({ id, start, end }: RoundResponse) => {
+const Row = ({
+	id,
+	start,
+	end,
+	winnerUser,
+	bestScore,
+	totalScore,
+}: RoundResponse) => {
 	const now = useNow();
 
 	return (
@@ -101,8 +106,15 @@ const Row = ({ id, start, end }: RoundResponse) => {
 		>
 			<div className={style.cell}>{id}</div>
 			<div className={style.cell}>
-				{dayjs(start).format("DD/MM/YY HH:mm:ss")} -&nbsp;
-				{dayjs(end).format("DD/MM/YY HH:mm:ss")}
+				{dayjs(start).format("DD/MM HH:mm:ss")} -&nbsp;
+				{dayjs(end).format("DD/MM HH:mm:ss")}
+			</div>
+			<div className={style.cell}>
+				{winnerUser && (
+					<span>
+						{winnerUser.username} ({bestScore}/{totalScore})
+					</span>
+				)}
 			</div>
 			<div className={style.cell}>
 				{roundState(now.value, start, end)}
@@ -111,9 +123,8 @@ const Row = ({ id, start, end }: RoundResponse) => {
 	);
 };
 
-export const Rounds = ({ className }: Props) => {
-	const scrollableElementRef =
-		useRef<Parameters<typeof SimpleBar>[0]["ref"]>(null);
+export const Rounds = () => {
+	const scrollableElementRef = useRef<SimpleBarCore>(null);
 
 	const roundsQuery = useInfiniteQuery<ListResponse<RoundResponse>>({
 		queryKey: ["roundsList"],
@@ -127,8 +138,9 @@ export const Rounds = ({ className }: Props) => {
 		queryFn: async (params) => {
 			const { data, error } = await api.rounds.get({
 				query: {
-					page: params.pageParam,
+					page: params.pageParam as number,
 					pageSize: PAGE_SIZE,
+					populate: "winnerUser",
 				},
 			});
 
@@ -148,7 +160,7 @@ export const Rounds = ({ className }: Props) => {
 			scrollHeight = 0,
 			scrollTop = 0,
 			clientHeight = 0,
-		} = scrollableElement;
+		} = scrollableElement || {};
 
 		const reachedBottom =
 			scrollHeight - SCROLL_CHECK_OFFSET <= scrollTop + clientHeight;
@@ -172,7 +184,7 @@ export const Rounds = ({ className }: Props) => {
 	}, [roundsQuery]);
 
 	return (
-		<div className={clsx(style.wrapper, className)}>
+		<div className={style.wrapper}>
 			<Header />
 
 			<div className={style.roundsTable}>
@@ -187,6 +199,7 @@ export const Rounds = ({ className }: Props) => {
 						>
 							<div className={style.headCell}>ID</div>
 							<div className={style.headCell}>Start - End</div>
+							<div className={style.headCell}>Winner</div>
 							<div className={style.headCell}>Status</div>
 						</div>
 

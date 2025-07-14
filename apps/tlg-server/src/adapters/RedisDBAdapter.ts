@@ -158,16 +158,6 @@ export class RedisDBAdapter<T> implements DbAdapter {
 			dataPipeline = dataPipeline.orderBy(keys, orders);
 		}
 
-		const pickedFields = Array.isArray(fields)
-			? fields
-			: fields?.split(",").map((field) => field.trim());
-
-		if (pickedFields?.length) {
-			dataPipeline = dataPipeline.map((entity) =>
-				_.pick(entity, pickedFields)
-			);
-		}
-
 		return dataPipeline.value().slice(offset, offset + limit);
 	}
 
@@ -278,25 +268,72 @@ export class RedisDBAdapter<T> implements DbAdapter {
 	 * @returns {Promise}
 	 * @memberof RedisDBAdapter
 	 */
-	async insert<T>(
-		entity: Record<string, any>,
-		pipeline?: ChainableCommander
-	): Promise<T> {
+	async insert<
+		T extends Record<string, any> & {
+			_id?: string;
+		}
+	>(entity: T, pipeline?: ChainableCommander): Promise<T> {
 		if (!entity) {
 			throw new Error("Entity is required");
 		}
 
 		const idField = this.service?.settings.idField ?? "_id";
-		entity._id = entity[idField] ?? ulid();
+		const _id = entity[idField] ?? ulid();
 
-		const key = this.makeKey(entity._id);
-		const val = JSON.stringify(entity);
+		const key = this.makeKey(_id);
+		const val = JSON.stringify({
+			...entity,
+			_id,
+		});
 
 		const target = pipeline ?? this.redis.pipeline();
+		await target.set(key, val).sadd(`${this.prefix}:ids`, _id);
 
-		await target
-			.set(key, val)
-			.sadd(`${this.prefix}:ids`, entity._id.toString());
+		if (!pipeline) {
+			await target.exec();
+		}
+
+		return entity;
+	}
+
+	/**
+	 * Inserts the entity into Redis and sets a TTL in milliseconds.
+	 *
+	 * @template T
+	 * @param {T & {_id?: string}} entity  The document to store.
+	 *                                    It will be augmented with `_id` if missing.
+	 * @param {number} ttlMs               Time-to-live in **milliseconds**.
+	 *                                    Must be a positive integer.
+	 * @param {import("ioredis").ChainableCommander} [pipeline]
+	 *                                    Optional pipeline/transaction to chain commands.
+	 *                                    If omitted, a new pipeline is created and executed.
+	 *
+	 * @returns {Promise<T>}              The same entity object (now guaranteed to contain `_id`).
+	 *
+	 * @throws {Error}                    If `entity` is falsy.
+	 * @throws {TypeError}                If `ttlMs` is not a positive number.
+	 */
+	async insertWithExpiration<
+		T extends Record<string, any> & { _id?: string }
+	>(entity: T, ttlMs: number, pipeline?: ChainableCommander): Promise<T> {
+		if (!entity) {
+			throw new Error("Entity is required");
+		}
+
+		if (typeof ttlMs !== "number" || ttlMs <= 0) {
+			throw new TypeError(
+				"ttlMs must be a positive number (milliseconds)"
+			);
+		}
+
+		const target = pipeline ?? this.redis.pipeline();
+		await this.insert(entity, target);
+
+		const idField = this.service?.settings.idField ?? "_id";
+		const _id = entity[idField] ?? entity._id ?? ulid();
+		const key = this.makeKey(_id);
+
+		target.pexpire(key, ttlMs);
 
 		if (!pipeline) {
 			await target.exec();

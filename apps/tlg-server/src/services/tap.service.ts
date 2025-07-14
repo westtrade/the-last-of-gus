@@ -14,8 +14,15 @@ import type {
 	UserResponse,
 	GetRoundParams,
 	RoundResponse,
+	ErrorResponse,
+	RawRoundModel,
+	RoundModel,
 } from "../models";
-import { REDIS_QUEUE_ENDPOINT } from "../../moleculer-config/config";
+import {
+	COOLDOWN_DURATION,
+	REDIS_QUEUE_ENDPOINT,
+	ROUND_DURATION,
+} from "../../moleculer-config/config";
 
 export const TapService: ServiceSchema = {
 	name: "taps",
@@ -37,7 +44,7 @@ export const TapService: ServiceSchema = {
 					userId: string;
 					roundId: string;
 				}>
-			): Promise<TapResponse> {
+			): Promise<TapResponse | ErrorResponse> {
 				const { userId, roundId } = job.data;
 
 				const self = this as typeof TapService;
@@ -58,7 +65,13 @@ export const TapService: ServiceSchema = {
 				let winner = round.winner ?? null;
 
 				if (round.status !== "active") {
-					throw new Error("round_not_active");
+					console.error("round_not_active");
+
+					return {
+						status: "error",
+						shortCode: "round_not_active",
+						code: 404,
+					};
 				}
 
 				let rawTap = await adapter.findOne<
@@ -73,7 +86,7 @@ export const TapService: ServiceSchema = {
 				const addScore =
 					user.role === "nikita" ? 0 : totalTaps % 11 === 0 ? 10 : 1;
 
-				if (rawTap !== null && rawTap !== undefined) {
+				if (!!rawTap && typeof rawTap?._id === "string") {
 					rawTap = await adapter.updateById(rawTap._id, {
 						$set: {
 							score: (rawTap.score ?? 0) + addScore,
@@ -85,20 +98,26 @@ export const TapService: ServiceSchema = {
 				}
 
 				if (rawTap === null) {
-					rawTap = (await adapter.insert({
-						userId,
-						roundId,
-						taps: 1,
-						score: addScore,
-					})) satisfies RawTapModel;
+					rawTap = (await adapter.insertWithExpiration(
+						{
+							userId,
+							roundId,
+							taps: 1,
+							score: addScore,
+						},
+						(ROUND_DURATION + COOLDOWN_DURATION) * 1_000
+					)) satisfies RawTapModel;
 				}
 
-				if (rawTap.score > bestScore) {
+				if (rawTap.score !== undefined && rawTap.score > bestScore) {
 					bestScore = rawTap.score;
 					winner = userId;
 				}
 
-				await broker.call("rounds.update", {
+				const roundState = await broker.call<
+					RoundModel,
+					Partial<RoundModel>
+				>("rounds.update", {
 					id: roundId,
 					taps: round.taps + 1,
 					totalScore: round.totalScore + addScore,
@@ -106,24 +125,94 @@ export const TapService: ServiceSchema = {
 					winner,
 				});
 
+				const users = await broker.call<
+					Record<string, UserResponse>,
+					{
+						id: (string | null)[];
+					}
+				>("users.getSafe", {
+					id: [roundState.winner],
+				});
+
+				const winnerUser = users[roundState.winner ?? ""] || null;
+
 				if (!rawTap) {
-					throw new Error("tap_not_found");
+					console.error("tap_not_found");
+
+					return {
+						status: "error",
+						shortCode: "tap_not_found",
+						code: 404,
+					};
 				}
 
-				const tap = adapter.afterRetrieveTransformID<TapModel>(
-					rawTap,
-					settings.idField
-				);
-
-				return {
-					...tap,
+				const tap = {
+					...adapter.afterRetrieveTransformID<TapModel>(
+						rawTap,
+						settings.idField
+					),
 					addScore,
 				};
+
+				broker.broadcast("taps.tap", {
+					tap,
+					round: { ...roundState, winnerUser },
+				});
+
+				return tap;
 			},
 		},
 	},
 
 	actions: {
+		ensureUserTap: {
+			params: { roundId: "string" },
+			async handler(
+				ctx: Context<{ roundId: string }, { token?: string }>
+			) {
+				const me = await ctx.call<UserResponse, undefined>(
+					"users.me",
+					undefined,
+					{
+						meta: {
+							token: ctx.meta.token,
+						},
+					}
+				);
+
+				const adapter = this.adapter as RedisDBAdapter<RawTapModel>;
+
+				let rawTap = await adapter.findOne<
+					FindOneTapParams,
+					RawTapModel
+				>({
+					userId: me.id,
+					roundId: ctx.params.roundId,
+				});
+
+				if (!rawTap) {
+					rawTap = await adapter.insertWithExpiration(
+						{
+							userId: me.id,
+							roundId: ctx.params.roundId,
+							taps: 0,
+							score: 0,
+						},
+						(ROUND_DURATION + COOLDOWN_DURATION) * 1_000
+					);
+				}
+
+				const addScore = me.role === "nikita" ? 0 : 1;
+				return {
+					...adapter.afterRetrieveTransformID<TapModel>(
+						rawTap!,
+						this.settings.idField
+					),
+					addScore,
+				};
+			},
+		},
+
 		tap: {
 			params: { roundId: "string" },
 			async handler(

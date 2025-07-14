@@ -127,7 +127,7 @@
 
 .roundsRow {
 	display: grid;
-	grid-template-columns: 180px 1fr auto;
+	grid-template-columns: 180px minmax(296px, 1fr) 1fr auto;
 	gap: 6px;
 	text-decoration: none;
 	transition: 200ms;

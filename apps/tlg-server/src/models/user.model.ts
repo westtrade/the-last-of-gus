@@ -12,7 +12,7 @@ export type RawUserModel = Omit<UserModel, "id"> & {
 };
 
 export type UserResponse = Omit<UserModel, "password"> & {
-	token: string;
+	token?: string;
 };
 
 export type AuthMeta = {

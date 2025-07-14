@@ -34,7 +34,7 @@
         "vite-tsconfig-paths": "^5.1.4",
       },
       "devDependencies": {
-        "@types/bun": "latest",
+        "@types/bun": "^1.2.18",
         "@types/react": "^19.1.8",
         "@types/react-dom": "^19.1.6",
         "@types/react-router": "^5.1.20",
@@ -52,10 +52,12 @@
         "tlg-server": "src/cli/index.js",
       },
       "dependencies": {
+        "@types/eev": "^0.1.7",
         "bcryptjs": "^3.0.2",
         "bull": "^4.16.5",
         "cac": "^6.7.14",
         "dayjs": "^1.11.13",
+        "eev": "^0.1.5",
         "ioredis": "^5.6.1",
         "jsonwebtoken": "^9.0.2",
         "lodash": "^4.17.21",
@@ -314,6 +316,8 @@
 
     "@types/deep-eql": ["@types/deep-eql@4.0.2", "", {}, "sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw=="],
 
+    "@types/eev": ["@types/eev@0.1.7", "", { "dependencies": { "eev": "*" } }, "sha512-h/t6ahUDyQ4O7cgwrCKMcp0WFUPCplKW76DmxkBEhtVjiGGTdw9AefJsWimYuLhUE0us96Eli7ffzM8H1C/hZA=="],
+
     "@types/estree": ["@types/estree@1.0.8", "", {}, "sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w=="],
 
     "@types/express": ["@types/express@5.0.3", "", { "dependencies": { "@types/body-parser": "*", "@types/express-serve-static-core": "^5.0.0", "@types/serve-static": "*" } }, "sha512-wGA0NX93b19/dZC1J18tKWVIYWyyF2ZjT9vin/NRu0qzzvfVzWjs04iq2rQ3H65vCTQYlRqs3YHfY7zjdV+9Kw=="],
@@ -527,6 +531,8 @@
     "ecdsa-sig-formatter": ["ecdsa-sig-formatter@1.0.11", "", { "dependencies": { "safe-buffer": "^5.0.1" } }, "sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ=="],
 
     "ee-first": ["ee-first@1.1.1", "", {}, "sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow=="],
+
+    "eev": ["eev@0.1.5", "", {}, "sha512-U7+up/+0JaC+ffyrMicGDzb+j2Q04Fy22tKK1Xh6hHFWdVtXwoBF8M2DwFofwsJzJcs3W3NPDvmxcMak5/iQaA=="],
 
     "electron-to-chromium": ["electron-to-chromium@1.5.179", "", {}, "sha512-UWKi/EbBopgfFsc5k61wFpV7WrnnSlSzW/e2XcBmS6qKYTivZlLtoll5/rdqRTxGglGHkmkW0j0pFNJG10EUIQ=="],
 

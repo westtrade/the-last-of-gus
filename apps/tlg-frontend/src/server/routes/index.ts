@@ -1,3 +1,2 @@
-export * from "./authRoutes";
-export * from "./apiRoutes";
-export * from "./roundsRoutes";
+export * from "./auth.routes";
+export * from "./rounds.routes";

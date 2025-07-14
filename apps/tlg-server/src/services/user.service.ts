@@ -60,6 +60,28 @@ export const UserService: ServiceSchema = {
 			},
 		},
 
+		getSafe: {
+			params: {
+				id: "array|item:string|optional",
+			},
+			cache: {
+				keys: ["id"],
+				ttl: 40,
+			},
+			async handler(ctx: Context<{ id: string }>) {
+				const rawUsersMap = (await this.actions.get(
+					ctx.params
+				)) as Record<string, UserResponse>;
+
+				return Object.fromEntries(
+					Object.values(rawUsersMap).map((rawUser) => [
+						rawUser.id,
+						_.omit(rawUser, "password"),
+					])
+				);
+			},
+		},
+
 		createOrLogin: {
 			params: {
 				username: "string|min:3|max:16",

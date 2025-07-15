@@ -16,7 +16,7 @@ import { CharacterHead } from "./CharacterHead";
 import { FormatNumber } from "../FormatNumber";
 import clsx from "clsx";
 
-import "./Character.style.sass";
+import "./Character.style.sass?prefetch";
 
 interface Props {
 	onHit?: TouchEventHandler<HTMLButtonElement>;

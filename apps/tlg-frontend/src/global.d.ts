@@ -12,3 +12,7 @@ declare module "*.png" {
 	const src: string;
 	export default src;
 }
+declare module "*?prefetch" {
+	const src: string;
+	export default src;
+}

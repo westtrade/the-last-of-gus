@@ -10,9 +10,11 @@ import logoSrc from "./assets/title.png";
 
 const queryClient = new QueryClient();
 
-const LazyRound = lazy(() => import("../features/round/ui/Round.tsx"));
-const LazyRounds = lazy(() => import("../features/rounds/ui/Rounds.tsx"));
-const LazyAuth = lazy(() => import("../features/auth/ui/Auth.tsx"));
+const LazyRound = lazy(() => import("../features/round/ui/Round.tsx?prefetch"));
+const LazyRounds = lazy(
+	() => import("../features/rounds/ui/Rounds.tsx?prefetch")
+);
+const LazyAuth = lazy(() => import("../features/auth/ui/Auth.tsx?prefetch"));
 
 const AuthLock = () => {
 	const { isPending, error, data } = useSuspenseQuery({

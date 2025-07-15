@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import viteCompression from "vite-plugin-compression";
+import prefetchPlugin from "vite-plugin-bundle-prefetch";
 
 export default defineConfig({
 	plugins: [
@@ -10,6 +11,7 @@ export default defineConfig({
 		viteCompression({
 			algorithm: "brotliCompress",
 		}),
+		prefetchPlugin(),
 	],
 	css: {
 		modules: {

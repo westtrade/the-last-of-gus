@@ -1,4 +1,4 @@
-import { Elysia } from "elysia";
+import { Elysia, file } from "elysia";
 import { createServer as createViteServer } from "vite";
 import { connect } from "elysia-connect-middleware";
 import { staticPlugin } from "@elysiajs/static";
@@ -8,6 +8,7 @@ import {
 	type AuthApi,
 	type RoundsApi,
 } from "@server/routes";
+
 import { NODE_ENV } from "./config";
 
 const apiRoutes = new Elysia({ prefix: "/api" })
@@ -53,14 +54,25 @@ if (NODE_ENV !== "production") {
 
 	app.use(connect(vite.middlewares));
 } else {
-	app.use(
-		staticPlugin({
-			assets: "dist",
-			prefix: "",
-			alwaysStatic: true,
-			indexHTML: true,
-		})
-	);
+	app.get("/", ({ set }) => {
+		set.headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+		set.headers["Pragma"] = "no-cache";
+		set.headers["Expires"] = "0";
+
+		return file("dist/index.html");
+	})
+		.use(
+			staticPlugin({
+				assets: "dist",
+				prefix: "",
+				alwaysStatic: true,
+				indexHTML: true,
+				headers: {
+					"Cache-Control": "public, max-age=31536000, immutable",
+				},
+			})
+		)
+		.get("/*", () => file("dist/index.html"));
 }
 
 export type ServerApi = typeof apiRoutes;

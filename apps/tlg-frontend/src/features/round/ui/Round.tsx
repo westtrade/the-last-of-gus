@@ -1,6 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { UserResponse } from "@westtrade/tlg-server";
+import type {
+	RoundResponse,
+	TapResponse,
+	UserResponse,
+} from "@westtrade/tlg-server";
 import { useParams } from "react-router";
 import {
 	api,
@@ -10,6 +14,7 @@ import {
 	useNow,
 	useAvgTapMeter,
 	ColorNumber,
+	usePrev,
 } from "@shared";
 import type { EdenWS } from "@elysiajs/eden/treaty";
 import dayjs from "dayjs";
@@ -19,6 +24,7 @@ dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
 import style from "./Round.module.scss";
+import { backgroundMusic, tapSound } from "@shared/lib/sounds";
 
 const MAX_POSSIBLE_TAPS = 690;
 
@@ -42,11 +48,48 @@ export const Round = () => {
 		},
 	});
 
+	const [data, setData] = useState<{
+		round: RoundResponse;
+		tap: TapResponse;
+	}>({
+		round: {
+			roundId: "-1",
+			name: "",
+			start: 0,
+			end: 0,
+			totalScore: 0,
+			bestScore: 0,
+			winnerUserId: null,
+			winnerUser: null,
+		},
+		tap: {
+			id: "-1",
+			userId: "-1",
+			roundId: "-1",
+			score: 0,
+			addScore: 0,
+			taps: 0,
+		},
+	});
+
+	useEffect(() => {
+		setData((state) => {
+			const currentRound = round.data?.round ?? state.round;
+			const tap = round.data?.tap ?? state.tap;
+
+			return {
+				round: currentRound,
+				tap,
+			};
+		});
+	}, [round.data]);
+
 	const roundProgress = useMemo(() => {
-		const { round: roundData, tap: tapData } = round.data ?? {};
+		const { round: roundData, tap: tapData } = data;
+
+		const state = roundState(now.value, roundData?.start, roundData?.end);
 
 		const myScore = tapData?.score ?? 0;
-		const state = roundState(now.value, roundData?.start, roundData?.end);
 		const addScore = tapData?.addScore ?? 0;
 
 		const isActive = state === "active";
@@ -72,7 +115,33 @@ export const Round = () => {
 			message,
 			state,
 		};
+	}, [now, data]);
+
+	useEffect(() => {
+		const { round: roundData } = round.data ?? {};
+		const state = roundState(now.value, roundData?.start, roundData?.end);
+
+		const currentNow = Date.now();
+		const actualNow = currentNow > now.value ? currentNow : now.value;
+
+		if (
+			dayjs(roundData?.start).diff(actualNow) < 15_000 &&
+			!backgroundMusic.playing() &&
+			state !== "finished"
+		) {
+			const musicId = backgroundMusic.play();
+			backgroundMusic.fade(0, 0.3, 2000, musicId);
+		} else if (state === "finished") {
+			backgroundMusic.stop();
+		}
 	}, [round.data, now]);
+
+	useEffect(() => {
+		backgroundMusic.stop();
+		return () => {
+			backgroundMusic.stop();
+		};
+	}, []);
 
 	const tapMeter = useAvgTapMeter(1_000);
 
@@ -81,6 +150,7 @@ export const Round = () => {
 			console.time("tap");
 			roundControllerRef.current.send("tap");
 
+			tapSound.play("click");
 			tapMeter.tap();
 		}
 	}, [roundControllerRef.current, tapMeter]);
@@ -148,7 +218,7 @@ export const Round = () => {
 			>
 				<Character
 					level={characterLevel}
-					changePerClick={`${roundProgress.addScore}`}
+					changePerClick={`${roundProgress.addScore > 1 ? "🦠" : 1}`}
 					onHit={onTapHandler}
 					isActive={roundProgress.isActive}
 				/>

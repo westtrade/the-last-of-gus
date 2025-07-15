@@ -202,7 +202,11 @@ export const Character: FC<Props> = ({
 									duration: 0.6,
 								}}
 							>
-								<FormatNumber value={label.amount} />
+								{Number.isNaN(Number(label.amount)) ? (
+									label.amount
+								) : (
+									<FormatNumber value={label.amount} />
+								)}
 							</motion.div>
 						);
 					})}

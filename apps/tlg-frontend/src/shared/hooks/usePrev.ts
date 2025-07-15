@@ -1,11 +1,13 @@
 import { useEffect, useRef } from "react";
 
 export function usePrev<T>(value: T): T | null {
-	const ref = useRef<T>(null);
+	const current = useRef<T>(null);
+	const prev = useRef<T>(null);
 
 	useEffect(() => {
-		ref.current = value;
+		prev.current = current.current;
+		current.current = value;
 	}, [value]);
 
-	return ref.current;
+	return prev.current;
 }

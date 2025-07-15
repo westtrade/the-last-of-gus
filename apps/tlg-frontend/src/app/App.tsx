@@ -1,17 +1,21 @@
+import { lazy, Suspense } from "react";
 import { Route, Routes, Outlet, Link } from "react-router";
 import {
 	QueryClient,
 	QueryClientProvider,
-	useQuery,
+	useSuspenseQuery,
 } from "@tanstack/react-query";
-import { Auth, Round, Rounds } from "@features";
 import { api } from "@shared";
 import logoSrc from "./assets/title.png";
 
 const queryClient = new QueryClient();
 
+const LazyRound = lazy(() => import("../features/round/ui/Round.tsx"));
+const LazyRounds = lazy(() => import("../features/rounds/ui/Rounds.tsx"));
+const LazyAuth = lazy(() => import("../features/auth/ui/Auth.tsx"));
+
 const AuthLock = () => {
-	const { isPending, error, data } = useQuery({
+	const { isPending, error, data } = useSuspenseQuery({
 		queryKey: ["auth"],
 		queryFn: async () => {
 			const { data } = await api.auth.me.get();
@@ -19,7 +23,7 @@ const AuthLock = () => {
 		},
 	});
 
-	return <>{data ? <Outlet /> : <Auth />}</>;
+	return <>{data ? <Outlet /> : <LazyAuth />}</>;
 };
 
 export const App = () => {
@@ -31,12 +35,19 @@ export const App = () => {
 				</Link>
 
 				<div className="container__content">
-					<Routes>
-						<Route element={<AuthLock />}>
-							<Route path="/" element={<Rounds />} />
-							<Route path="/round/:roundId" element={<Round />} />
-						</Route>
-					</Routes>
+					<Suspense
+						fallback={<div className="loading">Loading...</div>}
+					>
+						<Routes>
+							<Route element={<AuthLock />}>
+								<Route path="/" element={<LazyRounds />} />
+								<Route
+									path="/round/:roundId"
+									element={<LazyRound />}
+								/>
+							</Route>
+						</Routes>
+					</Suspense>
 				</div>
 			</div>
 		</QueryClientProvider>

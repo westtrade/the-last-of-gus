@@ -3,6 +3,7 @@ import {
 	useInfiniteQuery,
 	useMutation,
 	useQueryClient,
+	useSuspenseInfiniteQuery,
 } from "@tanstack/react-query";
 import clsx from "clsx";
 import { api, IconLogout, Loader, roundState, useNow } from "@shared";
@@ -126,7 +127,7 @@ const Row = ({
 export const Rounds = () => {
 	const scrollableElementRef = useRef<SimpleBarCore>(null);
 
-	const roundsQuery = useInfiniteQuery<ListResponse<RoundResponse>>({
+	const roundsQuery = useSuspenseInfiniteQuery<ListResponse<RoundResponse>>({
 		queryKey: ["roundsList"],
 		initialPageParam: 1,
 		refetchInterval: 1_000,
@@ -224,3 +225,5 @@ export const Rounds = () => {
 		</div>
 	);
 };
+
+export default Rounds;

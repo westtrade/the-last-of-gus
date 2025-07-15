@@ -23,6 +23,20 @@ body {
 	display: contents;
 }
 
+.loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex: 1 1 0;
+	width: 100%;
+	height: 100%;
+	color: #edd3b1;
+	text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black,
+		1px 1px 0 black;
+	font-weight: 700;
+	font-size: 28px;
+}
+
 .container {
 	max-width: 950px;
 	width: 100%;

@@ -90,3 +90,5 @@ export const Auth = () => {
 		</form>
 	);
 };
+
+export default Auth;

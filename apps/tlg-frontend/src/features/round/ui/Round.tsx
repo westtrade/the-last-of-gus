@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
 import type {
 	RoundResponse,
 	TapResponse,
@@ -35,7 +35,7 @@ export const Round = () => {
 	const now = useNow();
 	const roundControllerRef = useRef<EdenWS<any> | null>(null);
 
-	const round = useQuery({
+	const round = useSuspenseQuery({
 		queryKey: ["round", roundId],
 		queryFn: async () => {
 			const { data, error } = await api.rounds({ roundId }).get();
@@ -125,7 +125,7 @@ export const Round = () => {
 		const actualNow = currentNow > now.value ? currentNow : now.value;
 
 		if (
-			dayjs(roundData?.start).diff(actualNow) < 15_000 &&
+			dayjs(roundData?.start).diff(actualNow) < 7_000 &&
 			!backgroundMusic.playing() &&
 			state !== "finished"
 		) {
@@ -245,3 +245,5 @@ export const Round = () => {
 		</div>
 	);
 };
+
+export default Round;

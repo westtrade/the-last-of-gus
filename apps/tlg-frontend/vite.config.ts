@@ -11,7 +11,7 @@ export default defineConfig({
 		viteCompression({
 			algorithm: "brotliCompress",
 		}),
-		prefetchPlugin(),
+		// prefetchPlugin(),
 	],
 	css: {
 		modules: {

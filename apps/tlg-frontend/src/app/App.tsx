@@ -1,11 +1,11 @@
-import { lazy, Suspense } from "react";
-import { Route, Routes, Outlet, Link } from "react-router";
+import { lazy, Suspense, useEffect } from "react";
+import { Route, Routes, Outlet, Link, useNavigate } from "react-router";
 import {
 	QueryClient,
 	QueryClientProvider,
 	useSuspenseQuery,
 } from "@tanstack/react-query";
-import { api } from "@shared";
+import { api, Preloader } from "@shared";
 import logoSrc from "./assets/title.png";
 
 const queryClient = new QueryClient();
@@ -29,6 +29,10 @@ const AuthLock = () => {
 };
 
 export const App = () => {
+	useEffect(() => {
+		globalThis.PRELOADER.isStopped = true;
+	}, []);
+
 	return (
 		<QueryClientProvider client={queryClient}>
 			<div className="container">
@@ -37,9 +41,7 @@ export const App = () => {
 				</Link>
 
 				<div className="container__content">
-					<Suspense
-						fallback={<div className="loading">Loading...</div>}
-					>
+					<Suspense fallback={<Preloader />}>
 						<Routes>
 							<Route element={<AuthLock />}>
 								<Route path="/" element={<LazyRounds />} />

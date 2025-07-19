@@ -1,0 +1,376 @@
+.preloader {
+	// font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI",
+	// 	"Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+	// 	"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+	// position: fixed;
+	// left: 0;
+	// top: 0;
+	// right: 0;
+	// bottom: 0;
+	// width: 100%;
+	// height: 100%;
+	// background: #242836;
+	// z-index: 3000;
+	// display: flex;
+	// justify-content: center;
+	// align-items: center;
+	// user-select: none;
+	// pointer-events: none;
+
+	display: flex;
+
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	height: 100%;
+	padding-bottom: 30px;
+}
+
+.preloader ._content {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	height: 209px;
+	width: 459px;
+	top: 1px;
+	flex: 0 0 auto;
+	padding-bottom: 32px;
+}
+
+.preloader ._cards {
+	display: flex;
+	height: 80px;
+	flex: 0 0 auto;
+}
+
+.preloader ._icon {
+	/* opacity: 0; */
+	transition: opacity 0.3s ease;
+}
+
+.preloader ._card {
+	width: 64px;
+	height: 80px;
+	border-radius: 8px;
+	margin: 0 15px 0 0;
+	overflow: hidden;
+
+	border: solid 2px #2c261e;
+
+	background: url("../../app/assets/headerBg.png?inline") repeat;
+	box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
+.preloader ._card:last-child {
+	margin-right: 0;
+}
+
+.preloader ._logo {
+	margin-bottom: 35px;
+	width: 190px;
+	height: 44px;
+	left: -1px;
+	position: relative;
+	box-sizing: border-box;
+	flex: 0 0 auto;
+
+	/* background-color: #fff; */
+}
+
+.preloader ._message {
+	text-transform: uppercase;
+	color: #6c7486;
+	letter-spacing: 0.1em;
+	font-size: 12px;
+	font-weight: normal;
+	position: relative;
+	width: 100%;
+	text-align: center;
+	height: 15px;
+
+	/* opacity: 0;
+				transition: opacity 0.3s ease; */
+}
+
+.preloader ._icon {
+	width: 64px;
+	height: 80px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+
+	overflow: hidden;
+	border-radius: 8px;
+}
+
+.preloader ._icon ._img {
+	position: relative;
+}
+
+.preloader ._stack {
+	transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -480, 0, 1);
+}
+
+@keyframes animation_1-1 {
+	0%,
+	55.89995% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -480, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in;
+	}
+}
+
+@keyframes animation_infinitee {
+	0% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -480, 0, 1);
+		opacity: 1;
+		animation-timing-function: linear;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		animation-timing-function: linear;
+	}
+}
+
+@keyframes animation_2 {
+	0%,
+	60% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -480, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in;
+	}
+
+	87.99999999999999% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 10, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in-out;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+	}
+}
+
+@keyframes animation_2-1 {
+	0%,
+	68.18189566124508% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -480, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in-out;
+	}
+}
+
+@keyframes animation_3-1 {
+	0%,
+	76% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -480, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in-out;
+	}
+}
+
+@keyframes animation_4-1 {
+	0%,
+	82.14285714285712% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -480, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in-out;
+	}
+}
+
+@keyframes animation_5-1 {
+	0%,
+	87.09677419354838% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -480, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 10, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in-out;
+	}
+}
+
+@keyframes animation_6-1 {
+	0%,
+	93.93939393939394% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -480, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 10, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in-out;
+	}
+}
+
+@keyframes animation_1-2 {
+	85.71428571428571% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 10, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in-out;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+	}
+}
+
+@keyframes animation_2-2 {
+	87.99999999999999% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 10, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in-out;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+	}
+}
+
+@keyframes animation_3-2 {
+	89.28571428571429% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 10, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in-out;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+	}
+}
+
+@keyframes animation_4-2 {
+	90.3225806451613% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 10, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in-out;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+	}
+}
+
+@keyframes animation_5-2 {
+	91.1764705882353% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 10, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in-out;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+	}
+}
+
+@keyframes animation_6-2 {
+	91.66666666666667% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 10, 0, 1);
+		opacity: 1;
+		animation-timing-function: ease-in-out;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+	}
+}
+
+@keyframes animation-end {
+	0% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+	}
+
+	100% {
+		transform: matrix3d(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+		opacity: 1;
+	}
+}
+
+._animation1 {
+	animation: animation_1-1 1.79s, animation_infinitee 0.6s infinite 1.79s;
+}
+
+._animation2 {
+	animation: animation_2-1 2.22s, animation_infinitee 0.565s infinite 2.22s;
+}
+
+._animation3 {
+	animation: animation_3-1 2.48s, animation_infinitee 0.5475s infinite 2.48s;
+}
+
+._animation4 {
+	animation: animation_4-1 2.8s, animation_infinitee 0.525s infinite 2.8s;
+}
+
+._animation5 {
+	animation: animation_5-1 3.08s, animation_infinitee 0.5s infinite 3.08s;
+}
+
+._animation6 {
+	animation: animation_6-1 3.291s, animation_infinitee 0.485s infinite 3.291s;
+}
+
+._complete ._animation1 {
+	animation: animation_1-2 0.4s, animation-end 1s infinite 0.4s;
+}
+
+._complete ._animation2 {
+	animation: animation_2-2 0.49s, animation-end 1s infinite 0.49s;
+}
+
+._complete ._animation3 {
+	animation: animation_3-2 0.49s, animation-end 1s infinite 0.49s;
+}
+
+._complete ._animation4 {
+	animation: animation_4-2 0.41s, animation-end 1s infinite 0.41s;
+}
+
+._complete ._animation5 {
+	animation: animation_5-2 0.41s, animation-end 1s infinite 0.41s;
+}
+
+._complete ._animation6 {
+	animation: animation_6-2 0.41s, animation-end 1s infinite 0.41s;
+}

@@ -17,7 +17,6 @@ const apiRoutes = new Elysia({ prefix: "/api" })
 
 export const app = new Elysia()
 	.use(apiRoutes)
-
 	.get("/health", () => "ok")
 	.onError(({ code, error, set }) => {
 		set.status = error.code ?? error.cause?.code ?? 500;

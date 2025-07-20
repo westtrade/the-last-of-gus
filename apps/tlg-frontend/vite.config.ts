@@ -3,19 +3,40 @@ import react from "@vitejs/plugin-react";
 import tsconfigPaths from "vite-tsconfig-paths";
 import viteCompression from "vite-plugin-compression";
 import prefetchPlugin from "vite-plugin-bundle-prefetch";
+import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
 
 export default defineConfig({
 	plugins: [
-		react(),
+		react({
+			babel: {
+				plugins: [
+					[
+						"babel-plugin-react-compiler",
+						{
+							target: "19",
+							experimental: true,
+						},
+					],
+				],
+			},
+		}),
 		tsconfigPaths({ loose: true }),
 		viteCompression({
 			algorithm: "brotliCompress",
 		}),
+		viteCompression({
+			algorithm: "gzip",
+		}),
 		// prefetchPlugin(),
+		ViteImageOptimizer({}),
 	],
 	css: {
 		modules: {
 			generateScopedName(name, filename = "", css) {
+				if (css.includes("@keyframes")) {
+					return name;
+				}
+
 				const file =
 					filename
 						.split("/")

@@ -15,14 +15,15 @@ import type {
 	GetRoundParams,
 	RoundResponse,
 	ErrorResponse,
-	RawRoundModel,
 	RoundModel,
 } from "../models";
+import { CacheSyncMixin } from "../mixins";
 import {
 	COOLDOWN_DURATION,
 	REDIS_QUEUE_ENDPOINT,
 	ROUND_DURATION,
 } from "../../moleculer-config/config";
+import Moleculer from "moleculer";
 
 export const TapService: ServiceSchema = {
 	name: "taps",
@@ -137,7 +138,7 @@ export const TapService: ServiceSchema = {
 				const winnerUser = users[roundState.winner ?? ""] || null;
 
 				if (!rawTap) {
-					console.error("tap_not_found");
+					broker.logger.error("tap_not_found");
 
 					return {
 						status: "error",
@@ -153,6 +154,10 @@ export const TapService: ServiceSchema = {
 					),
 					addScore,
 				};
+
+				broker.broadcast("cache.clear", {
+					serviceNames: ["rounds", "taps"],
+				});
 
 				broker.broadcast("taps.tap", {
 					tap,

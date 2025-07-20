@@ -7,7 +7,6 @@ import {
 	REDIS_QUEUE_ENDPOINT,
 	ROUND_DURATION,
 } from "../../moleculer-config/config";
-
 import type {
 	RawRoundModel,
 	RoundModel,

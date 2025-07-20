@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from "react";
-import { Route, Routes, Outlet, Link, useNavigate } from "react-router";
+import { Route, Routes, Outlet, Link } from "react-router";
 import {
 	QueryClient,
 	QueryClientProvider,
@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { api, Preloader } from "@shared";
 import logoSrc from "./assets/title.png";
+import notFoundSrc from "@shared/assets/404bgCarpet.png";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,14 @@ const AuthLock = () => {
 	});
 
 	return <>{data ? <Outlet /> : <LazyAuth />}</>;
+};
+
+const NotFoundPage = () => {
+	return (
+		<div className="not-found">
+			<img src={notFoundSrc} width="100%" className="not-found__cover" />
+		</div>
+	);
 };
 
 export const App = () => {
@@ -50,6 +59,8 @@ export const App = () => {
 									element={<LazyRound />}
 								/>
 							</Route>
+
+							<Route path="*" element={<NotFoundPage />} />
 						</Routes>
 					</Suspense>
 				</div>

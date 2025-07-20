@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import {
-	useInfiniteQuery,
 	useMutation,
 	useQueryClient,
 	useSuspenseInfiniteQuery,
@@ -57,9 +56,9 @@ const Header = () => {
 		},
 	});
 
-	const handleCreateRound = useCallback(() => {
+	const handleCreateRound = () => {
 		createRoundMutation.mutate();
-	}, [createRoundMutation]);
+	};
 
 	return (
 		<div className={style.header}>
@@ -89,21 +88,24 @@ const Header = () => {
 	);
 };
 
-const Row = ({
-	id,
-	start,
-	end,
-	winnerUser,
-	bestScore,
-	totalScore,
-}: RoundResponse) => {
+const Row = (round: RoundResponse) => {
 	const now = useNow();
+	const { id, start, end, winnerUser, bestScore, totalScore } = round;
+
+	const queryClient = useQueryClient();
+	const cacheDataOnMouseClick = useCallback(() => {
+		queryClient.setQueryData(["round", round.id], {
+			round: { ...round },
+			tap: undefined,
+		});
+	}, [queryClient, round]);
 
 	return (
 		<Link
 			key={id}
 			to={`/round/${id}`}
 			className={clsx(style.row, style.roundsRow)}
+			onMouseDown={cacheDataOnMouseClick}
 		>
 			<div className={style.cell}>{id}</div>
 			<div className={style.cell}>

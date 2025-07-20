@@ -4,7 +4,7 @@ import { loadServices } from "./libs";
 import * as services from "./services";
 
 import { SERVICES } from "../moleculer-config/config";
-import { makeBrokerEvents } from "./middlewares.ts";
+import { makeBrokerEvents } from "./middlewares";
 
 export const brokerEvents = makeBrokerEvents();
 export const broker = new ServiceBroker({
@@ -16,13 +16,7 @@ export const broker = new ServiceBroker({
 	...moleculerConfig,
 	middlewares: [brokerEvents.middleware],
 
-	cacher: {
-		type: "MemoryLRU",
-		options: {
-			maxSize: 1000,
-			ttl: 60,
-		},
-	},
+	cacher: false,
 } as BrokerOptions);
 
 loadServices(

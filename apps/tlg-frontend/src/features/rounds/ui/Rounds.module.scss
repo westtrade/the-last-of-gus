@@ -56,11 +56,14 @@
 	justify-content: center;
 
 	gap: 8px;
-
 	position: relative;
 
 	&:hover {
 		background: #c48431;
+	}
+
+	&:disabled {
+		background: #c48431bb;
 	}
 }
 

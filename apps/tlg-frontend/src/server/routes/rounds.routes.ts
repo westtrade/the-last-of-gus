@@ -72,7 +72,9 @@ export const roundsApi = new Elysia({ prefix: "/rounds" })
 			return await broker.call<TapResponse, CreateTapParams>(
 				"taps.tap",
 				body,
-				{ meta: { token } }
+				{
+					meta: { token },
+				}
 			);
 		},
 		{
@@ -115,6 +117,9 @@ export const roundsApi = new Elysia({ prefix: "/rounds" })
 	)
 
 	.ws("/:roundId/ws", {
+		error(...args) {
+			console.log("WS error", ...args);
+		},
 		async open(ws) {
 			const { broker, brokerEvents, request } = ws.data;
 			const cookies = new Bun.CookieMap(

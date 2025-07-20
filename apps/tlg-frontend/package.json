@@ -8,6 +8,8 @@
     "@types/react-dom": "^19.1.6",
     "@types/react-router": "^5.1.20",
     "@vitejs/plugin-react": "^4.6.0",
+    "babel-plugin-react-compiler": "^0.0.0-experimental-24ca5d9-20250717",
+    "eslint-plugin-react-compiler": "^0.0.0-experimental-24ca5d9-20250717",
     "vite": "^7.0.2"
   },
   "peerDependencies": {
@@ -34,14 +36,18 @@
     "millify": "^6.1.0",
     "moleculer": "^0.14.35",
     "normalize.css": "^8.0.1",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "^19.0.0-rc.1",
+    "react-compiler-runtime": "^0.0.0-experimental-24ca5d9-20250717",
+    "react-dom": "^19.0.0-rc.1",
     "react-router": "^7.6.3",
     "reset.css": "^2.0.2",
     "sass": "^1.89.2",
+    "sharp": "^0.34.3",
     "simplebar-react": "^3.3.2",
+    "svgo": "^4.0.0",
     "vite-plugin-bundle-prefetch": "^0.0.4",
     "vite-plugin-compression": "^0.5.1",
+    "vite-plugin-image-optimizer": "^2.0.2",
     "vite-tsconfig-paths": "^5.1.4"
   },
   "scripts": {

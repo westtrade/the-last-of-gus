@@ -23,7 +23,6 @@ export const ColorNumber: React.FC<Props> = ({ value, duration = 500 }) => {
 
 	useEffect(() => {
 		const diffValue = value - prevValue;
-
 		if (diffValue !== 0) {
 			const colorClass = diffValue > 0 ? style.increase : style.decrease;
 			const id = Date.now() + Math.random();
@@ -47,7 +46,7 @@ export const ColorNumber: React.FC<Props> = ({ value, duration = 500 }) => {
 		}
 
 		return () => {};
-	}, [value, duration, prevValue]);
+	}, [duration, prevValue]);
 
 	useEffect(() => {
 		return () => {

@@ -8,5 +8,5 @@ type Props = {
 };
 
 export const Loader = ({ className }: Props) => {
-	return <span className={clsx(style.wrapper)}></span>;
+	return <span className={clsx(style.wrapper, className)}></span>;
 };

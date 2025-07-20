@@ -23,7 +23,7 @@ services:
             REDIS_QUEUE_ENDPOINT: redis://redis:6379
             SERVICES: taps,rounds
 
-    service-user:
+    service-users:
         image: oven/bun:1.2.18
         working_dir: /usr/src/app
         volumes:
@@ -45,7 +45,6 @@ services:
         working_dir: /usr/src/app
         volumes:
             - ./:/usr/src/app
-            - ./data:/usr/src/app/apps/tlg-server/data
         restart: always
         command: bun run --filter="@westtrade/tlg-server" start
         networks:
@@ -69,15 +68,14 @@ services:
         depends_on:
             - services
             - service-taps
+            - service-users
             - redis
         environment:
+            NODE_ENV: production
             TRANSPORTER: redis://redis:6379
             REDIS_QUEUE_ENDPOINT: redis://redis:6379
-            LOG_LEVEL: fatal
+            # LOG_LEVEL: fatal
             SERVICES: taps,rounds
-
-        ports:
-            - "3000:3000"
 
     frontend_1:
         image: oven/bun:1.2.18
@@ -95,7 +93,7 @@ services:
         environment:
             TRANSPORTER: redis://redis:6379
             REDIS_QUEUE_ENDPOINT: redis://redis:6379
-            LOG_LEVEL: fatal
+            # LOG_LEVEL: fatal
             SERVICES: taps,rounds
             HTTP_PORT: 3001
 
@@ -115,19 +113,20 @@ services:
         environment:
             TRANSPORTER: redis://redis:6379
             REDIS_QUEUE_ENDPOINT: redis://redis:6379
-            LOG_LEVEL: fatal
+            # LOG_LEVEL: fatal
             SERVICES: taps,rounds
             HTTP_PORT: 3002
 
     caddy:
         image: caddy:2.8.4-alpine
         ports:
-            - "80:80"
-            - "443:443"
+            - "8080:80"
+            - "4443:443"
         volumes:
-            - ./Caddyfile:/etc/caddy/Caddyfile:ro
+            - ./etc/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
             - caddy_data:/data
             - caddy_config:/config
+            - ./:/usr/src/app
         networks:
             - the-last-of-gus-network
         depends_on:

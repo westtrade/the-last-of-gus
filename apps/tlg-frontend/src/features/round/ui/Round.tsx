@@ -14,7 +14,6 @@ import {
 	useNow,
 	useAvgTapMeter,
 	ColorNumber,
-	usePrev,
 } from "@shared";
 import type { EdenWS } from "@elysiajs/eden/treaty";
 import dayjs from "dayjs";
@@ -84,6 +83,12 @@ export const Round = () => {
 		});
 	}, [round.data]);
 
+	const winnerIsYou = useMemo(() => {
+		const { round: roundData } = data;
+
+		return roundData?.winner === me?.id;
+	}, [data]);
+
 	const roundProgress = useMemo(() => {
 		const { round: roundData, tap: tapData } = data;
 
@@ -96,10 +101,17 @@ export const Round = () => {
 
 		const currentNow = Date.now();
 		const actualNow = currentNow > now.value ? currentNow : now.value;
+		const winnerIsYou = roundData?.winner === me?.id;
+
+		const winnerMessage = roundData.winnerUser
+			? `Winner ${
+					winnerIsYou ? " - is you!" : roundData?.winnerUser?.username
+			  } (${roundData?.bestScore}/${roundData?.totalScore})`
+			: "no winner";
 
 		const message =
 			state === "finished"
-				? `Winner: ${roundData?.winnerUser?.username} (${roundData?.bestScore}/${roundData?.totalScore})`
+				? winnerMessage
 				: state === "cooldown"
 				? `<span class="${style.timeLeft}">${formatTime(
 						dayjs(roundData?.start).diff(actualNow)
@@ -226,17 +238,18 @@ export const Round = () => {
 			<div className={style.panelBottom}>
 				<div className={style.state}>
 					{roundProgress.state === "active"
-						? "🟢 Round is active!"
+						? "Round is active!"
 						: roundProgress.state === "finished"
-						? "🔴 Round is finished!"
-						: "🧊 Cooldown..."}
+						? "Finished"
+						: "Cooldown"}
 				</div>
 
 				<div
 					dangerouslySetInnerHTML={{ __html: roundProgress.message }}
 				></div>
 
-				{["active", "finished"].includes(roundProgress.state) && (
+				{(roundProgress.state === "active" ||
+					(roundProgress.state === "finished" && !winnerIsYou)) && (
 					<div>
 						My score: <ColorNumber value={roundProgress.myScore} />
 					</div>

@@ -32,7 +32,7 @@
 	text-align: center;
 	margin: auto auto 0;
 	min-height: 160px;
-
+	justify-content: center;
 	max-width: 650px;
 	width: 100%;
 
@@ -49,23 +49,21 @@
 	background: url("./assets/bottomPanelbg.png?inline") repeat;
 
 	padding: 20px;
-
 	box-sizing: border-box;
-
-	font-weight: 700;
-	font-size: 20px;
-
+	font-size: 16px;
 	color: #edd3b1;
 	text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black,
 		1px 1px 0 black;
 }
 
 .state {
-	font-size: 34px;
-
+	font-size: 26px;
 	text-align: center;
 	width: 100%;
 	margin-bottom: 15px;
+
+	font-weight: 900;
+	text-transform: uppercase;
 }
 
 .character {
@@ -75,6 +73,6 @@
 }
 
 .timeLeft {
-	display: inline-block;
-	width: 52px;
+	display: inline-flex;
+	width: 48px;
 }

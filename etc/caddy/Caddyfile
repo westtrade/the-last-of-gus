@@ -1,6 +1,28 @@
-gussworld.omdbot.fun {
-    reverse_proxy frontend:3001 frontend_1:3002 frontend_2:3003 {
-        lb_policy least_conn
-        health_uri /health
+gussworld.omdbot.local, gussworld.omdbot.fun {
+    root * /usr/src/app/apps/tlg-frontend/dist
+
+    handle /api/* {
+        reverse_proxy frontend:3000 frontend_1:3001 frontend_2:3002 {
+            lb_policy least_conn
+            health_uri /health
+        }
+    }
+    
+    handle /assets/* {
+        header Cache-Control "public, max-age=31536000, immutable"
+
+        file_server {
+            precompressed br zstd gzip
+        }
+    }
+
+    handle {
+        root * /usr/src/app/apps/tlg-frontend/dist
+        rewrite * /index.html
+        header Cache-Control "no-cache, no-store, must-revalidate"
+
+        file_server {
+            precompressed br zstd gzip
+        }
     }
 }

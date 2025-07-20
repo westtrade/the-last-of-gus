@@ -9,6 +9,7 @@ import type {
 	TapResponse,
 	UserResponse,
 } from "@westtrade/tlg-server";
+import Bun from "bun";
 
 export const roundsApi = new Elysia({ prefix: "/rounds" })
 	.use(brokerPlugin)

@@ -9,7 +9,7 @@ import type {
 	TapResponse,
 	UserResponse,
 } from "@westtrade/tlg-server";
-import Bun from "bun";
+import cookie from "cookie";
 
 export const roundsApi = new Elysia({ prefix: "/rounds" })
 	.use(brokerPlugin)
@@ -123,10 +123,12 @@ export const roundsApi = new Elysia({ prefix: "/rounds" })
 		},
 		async open(ws) {
 			const { broker, brokerEvents, request } = ws.data;
-			const cookies = new Bun.CookieMap(
+			const { sessionToken: token } = cookie.parse(
 				request.headers.get("Cookie") || ""
-			);
-			const token = cookies.get("sessionToken");
+			) satisfies {
+				sessionToken?: string;
+			};
+
 			const me = await broker.call<UserResponse, undefined>(
 				"users.me",
 				undefined,
@@ -153,10 +155,11 @@ export const roundsApi = new Elysia({ prefix: "/rounds" })
 
 		async message(ws, message) {
 			const { broker, request, params } = ws.data;
-			const cookies = new Bun.CookieMap(
+			const { sessionToken: token } = cookie.parse(
 				request.headers.get("Cookie") || ""
-			);
-			const token = cookies.get("sessionToken");
+			) satisfies {
+				sessionToken?: string;
+			};
 			broker.call<TapResponse, CreateTapParams>(
 				"taps.tap",
 				{ roundId: params.roundId },

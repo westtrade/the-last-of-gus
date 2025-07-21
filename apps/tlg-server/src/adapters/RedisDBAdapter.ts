@@ -9,12 +9,9 @@ import {
 import type { Service, ServiceBroker } from "moleculer";
 import _ from "lodash";
 import { ulid } from "ulid";
-
-import redis, {
-	type ChainableCommander,
-	type Redis,
-	type RedisOptions,
-} from "ioredis";
+// import type { ChainableCommander, Redis, RedisOptions } from "ioredis";
+import type { ChainableCommander, Redis, RedisOptions } from "iovalkey";
+import redis from "iovalkey";
 
 type AnyRedisOption = string | number | (RedisOptions & { prefix?: string });
 

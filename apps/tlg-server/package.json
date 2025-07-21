@@ -23,6 +23,7 @@
     "dayjs": "^1.11.13",
     "eev": "^0.1.5",
     "ioredis": "^5.6.1",
+    "iovalkey": "^0.3.3",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "moleculer": "^0.14.35",

@@ -139,11 +139,11 @@ export const roundsApi = new Elysia({ prefix: "/rounds" })
 
 			ws.data.subscriptionHandler = (data) => {
 				const { tap, round } = data as {
-					tap: TapResponse;
+					tap?: TapResponse;
 					round: RoundResponse;
 				};
 
-				if (me.id === tap.userId) {
+				if (me.id === tap?.userId) {
 					ws.send(data);
 				} else {
 					ws.send({ round });
@@ -153,18 +153,27 @@ export const roundsApi = new Elysia({ prefix: "/rounds" })
 			brokerEvents.on("taps.tap", ws.data.subscriptionHandler);
 		},
 
-		async message(ws, message) {
+		async message(
+			ws,
+			message: { type: string; payload: { clientId?: string } }
+		) {
 			const { broker, request, params } = ws.data;
 			const { sessionToken: token } = cookie.parse(
 				request.headers.get("Cookie") || ""
 			) satisfies {
 				sessionToken?: string;
 			};
-			broker.call<TapResponse, CreateTapParams>(
-				"taps.tap",
-				{ roundId: params.roundId },
-				{ meta: { token } }
-			);
+
+			if (message.type === "tap") {
+				broker.call<TapResponse, CreateTapParams>(
+					"taps.tap",
+					{
+						roundId: params.roundId,
+						clientId: message.payload?.clientId,
+					},
+					{ meta: { token } }
+				);
+			}
 		},
 		close(ws, code, reason) {
 			const { brokerEvents, subscriptionHandler } = ws.data;

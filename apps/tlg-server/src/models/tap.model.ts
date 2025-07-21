@@ -16,6 +16,7 @@ export type TapResponse = TapModel & {
 
 export type CreateTapParams = {
 	roundId: string;
+	clientId?: string;
 };
 
 export type FindOneTapParams = {

@@ -41,6 +41,7 @@
     justify-content: end
     pointer-events: none
     user-select: none
+    font-size: 2rem
 
     &--active
         pointer-events: auto
@@ -103,10 +104,13 @@
         pointer-events: none
 
         &-wrapper
-            opacity: var(--taps-power, 0)
+            opacity: 0
             pointer-events: none
             z-index: 0
+            transition: opacity 200ms ease-in-out
 
+    &--active &__shiny-wrapper
+        opacity: var(--taps-power, 0)
 
     &__animation
         position: absolute

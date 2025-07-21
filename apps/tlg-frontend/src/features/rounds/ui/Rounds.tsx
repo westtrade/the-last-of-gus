@@ -93,11 +93,19 @@ const Row = (round: RoundResponse) => {
 	const { id, start, end, winnerUser, bestScore, totalScore } = round;
 
 	const queryClient = useQueryClient();
-	const cacheDataOnMouseClick = useCallback(() => {
-		queryClient.setQueryData(["round", round.id], {
-			round: { ...round },
-			tap: undefined,
-		});
+	const cacheDataOnMouseClick = useCallback(async () => {
+		const cachedData = queryClient.getQueryData(["round", round.id]);
+
+		if (round.status === "finished" && cachedData) {
+			return;
+		}
+
+		const { data, error } = await api.rounds({ roundId: round.id }).get();
+		if (error) {
+			throw error;
+		}
+
+		queryClient.setQueryData(["round", round.id], data);
 	}, [queryClient, round]);
 
 	return (
@@ -105,7 +113,7 @@ const Row = (round: RoundResponse) => {
 			key={id}
 			to={`/round/${id}`}
 			className={clsx(style.row, style.roundsRow)}
-			onMouseDown={cacheDataOnMouseClick}
+			onMouseOver={cacheDataOnMouseClick}
 		>
 			<div className={style.cell}>{id}</div>
 			<div className={style.cell}>

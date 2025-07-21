@@ -7,7 +7,7 @@ interface Props {
 
 export const FormatNumber: FC<Props> = ({ value = "" }) => {
 	const label = useMemo(
-		() => millify(Number.parseFloat(value.toString())),
+		() => millify(Number.parseFloat(value?.toString())),
 		[value]
 	);
 	return <>{label}</>;

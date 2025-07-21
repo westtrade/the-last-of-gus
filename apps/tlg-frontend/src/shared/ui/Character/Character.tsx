@@ -1,53 +1,42 @@
-import React, {
-	useCallback,
-	useMemo,
-	useRef,
-	useState,
-	type FC,
-	type TouchEventHandler,
-} from "react";
-import { random, sample, debounce } from "lodash";
+import React, { useCallback, useMemo, useRef, type FC } from "react";
+import { debounce } from "lodash";
 import { motion, AnimatePresence, useCycle } from "framer-motion";
 
 import { CharacterLevel0 } from "./levels/CharacterLevel0";
 import { CharacterLevel1 } from "./levels/CharacterLevel1";
 import { CharacterLevel2 } from "./levels/CharacterLevel2";
-import { CharacterHead } from "./CharacterHead";
 import { FormatNumber } from "../FormatNumber";
 import clsx from "clsx";
 
+import type { AmountLabel, FallingHeads } from "@shared/hooks/useScoreLabels";
+
 import "./Character.style.sass?prefetch";
 
+export type HitPoint = {
+	x: number;
+	y: number;
+};
+
 interface Props {
-	onHit?: TouchEventHandler<HTMLButtonElement>;
+	onHit?: (point: HitPoint) => void;
 	level?: number;
-	changePerClick?: string;
 	isActive?: boolean;
+	fallingItem?: React.ReactNode;
+	labels?: AmountLabel[];
+	heads?: FallingHeads[];
+	onRemoveHead?: (id: string) => void;
 }
 
 const levels = [CharacterLevel0, CharacterLevel1, CharacterLevel2];
 
-interface FallingHeads {
-	id: number | string;
-	x: number;
-	y: number;
-	toX: number;
-	toY: number | number[];
-}
-
-interface AmountLabel {
-	id: number | string;
-	amount: number | string;
-	initialX: number;
-	initialY: number;
-	resultY: number;
-}
-
 export const Character: FC<Props> = ({
 	onHit,
 	level = 0,
-	changePerClick = 0,
 	isActive,
+	fallingItem,
+	labels,
+	heads,
+	onRemoveHead,
 }) => {
 	const CurrentLevel = useMemo(() => {
 		return levels.at(level) || (levels.at(-1) as FC);
@@ -60,42 +49,6 @@ export const Character: FC<Props> = ({
 
 	let timer: Timer;
 
-	const [amountLabels, setAmountLabels] = useState<AmountLabel[]>([]);
-	const [heads, setHeads] = useState<FallingHeads[]>([]);
-
-	function addLabels(x: number, y: number, changePerClick: string | number) {
-		const totalItems = random(1, 3);
-		const instances: FallingHeads[] = [];
-		for (let index = 1; index <= totalItems; index++) {
-			instances.push({
-				id: Date.now() + index,
-				x,
-				y,
-				toX: x + random(5, 65) * sample([-1, 1]),
-				toY: [y, y - random(-5, 45), y + 150],
-			});
-		}
-
-		setHeads((prevInstances) => {
-			return [...instances, ...prevInstances].slice(0, 10);
-		});
-
-		setAmountLabels((labels) => {
-			const newLabels = [
-				{
-					id: `${Date.now()}.${random()}.${labels.length}`,
-					amount: changePerClick,
-					initialX: x,
-					initialY: y,
-					resultY: y - 180,
-				},
-				...labels.slice(0, 5),
-			];
-
-			return newLabels;
-		});
-	}
-
 	const handleTap = useCallback(
 		debounce((event: TouchEvent) => {
 			const touches = Array.from(event.targetTouches);
@@ -105,19 +58,18 @@ export const Character: FC<Props> = ({
 			for (const touch of touches) {
 				const x = touch.clientX - elementPosition.left - 2;
 				const y = touch.clientY - elementPosition.top - 6;
-				addLabels(x, y, changePerClick);
+
+				if (onHit) {
+					onHit({ x, y });
+				}
 			}
 
 			clearTimeout(timer);
 			cycle();
 
 			timer = setTimeout(cycle, 100);
-
-			if (onHit) {
-				onHit(event);
-			}
 		}, 10),
-		[changePerClick]
+		[]
 	);
 
 	const handleClick = useCallback(
@@ -139,26 +91,26 @@ export const Character: FC<Props> = ({
 				const elementPosition = wrapperElement.getBoundingClientRect();
 				const x = event.clientX - elementPosition.left - 2;
 				const y = event.clientY - elementPosition.top - 6;
-				addLabels(x, y, changePerClick);
+
+				if (onHit) {
+					onHit({ x, y });
+				}
 
 				clearTimeout(timer);
 				cycle();
 
 				timer = setTimeout(cycle, 100);
-
-				if (onHit) {
-					onHit(event);
-				}
 			}
 		}, 10),
-		[changePerClick]
+		[]
 	);
 
-	const handleAnimationComplete = useCallback((id: number | string) => {
-		setHeads((prevInstances) =>
-			prevInstances.filter((instance) => instance.id !== id)
-		);
-	}, []);
+	const handleAnimationComplete = useCallback(
+		(id: number | string) => {
+			onRemoveHead?.(id);
+		},
+		[onRemoveHead]
+	);
 
 	const animationElement = useRef<HTMLDivElement>(null);
 
@@ -183,7 +135,7 @@ export const Character: FC<Props> = ({
 
 			<div className="character__animation" ref={animationElement}>
 				<AnimatePresence>
-					{amountLabels.map((label) => {
+					{labels?.map((label) => {
 						return (
 							<motion.div
 								className="character__reward"
@@ -211,33 +163,34 @@ export const Character: FC<Props> = ({
 						);
 					})}
 
-					{heads.map(({ id, x, y, toX, toY }) => {
-						return (
-							<motion.div
-								className="character__falling-head"
-								key={id}
-								initial={{ x, y, opacity: 1 }}
-								animate={{
-									x: toX,
-									y: toY,
-									opacity: [1, 0.9, 0.9, 0.9, 0.5, 0.5, 0],
-								}}
-								transition={{
-									duration: 0.6,
-									ease: "easeInOut",
-								}}
-								exit={{ opacity: 0 }}
-								onAnimationComplete={() =>
-									handleAnimationComplete(id)
-								}
-								data-key={id}
-								data-x={x}
-								data-y={y}
-							>
-								<CharacterHead />
-							</motion.div>
-						);
-					})}
+					{fallingItem &&
+						heads?.map(({ id, x, y, toX, toY }) => {
+							return (
+								<motion.div
+									className="character__falling-head"
+									key={id}
+									initial={{ x, y, opacity: 1 }}
+									animate={{
+										x: toX,
+										y: toY,
+										opacity: [1, 0.7, 0.7, 0.7, 0.4, 0, 0],
+									}}
+									transition={{
+										duration: 0.6,
+										ease: "easeInOut",
+									}}
+									exit={{ opacity: 0 }}
+									onAnimationComplete={() =>
+										handleAnimationComplete(id)
+									}
+									data-key={id}
+									data-x={x}
+									data-y={y}
+								>
+									{fallingItem}
+								</motion.div>
+							);
+						})}
 				</AnimatePresence>
 			</div>
 
@@ -389,11 +342,7 @@ export const Character: FC<Props> = ({
 						gradientTransform="translate(62 14.5) scale(62 14.5)"
 					>
 						<stop offset="0.65" stopColor="#6FA535" />
-						<stop
-							offset="1"
-							stopColor="#6FA535"
-							stopOpacity="0.2"
-						/>
+						<stop offset="5" stopColor="#6FA535" stopOpacity="0" />
 					</radialGradient>
 				</defs>
 			</svg>

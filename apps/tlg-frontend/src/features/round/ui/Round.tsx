@@ -14,6 +14,7 @@ import {
 	useNow,
 	useAvgTapMeter,
 	ColorNumber,
+	type HitPoint,
 } from "@shared";
 import type { EdenWS } from "@elysiajs/eden/treaty";
 import dayjs from "dayjs";
@@ -22,8 +23,10 @@ import relativeTime from "dayjs/plugin/relativeTime";
 dayjs.extend(duration);
 dayjs.extend(relativeTime);
 
-import style from "./Round.module.scss";
 import { backgroundMusic, tapSound } from "@shared/lib/sounds";
+import { useScoreLabels } from "@shared/hooks/useScoreLabels";
+
+import style from "./Round.module.scss";
 
 const MAX_POSSIBLE_TAPS = 690;
 
@@ -33,6 +36,7 @@ export const Round = () => {
 	const { roundId = "-1" } = useParams<{ roundId: string }>();
 	const now = useNow();
 	const roundControllerRef = useRef<EdenWS<any> | null>(null);
+	const scoreLabels = useScoreLabels();
 
 	const round = useSuspenseQuery({
 		queryKey: ["round", roundId],
@@ -85,18 +89,13 @@ export const Round = () => {
 
 	const winnerIsYou = useMemo(() => {
 		const { round: roundData } = data;
-
 		return roundData?.winner === me?.id;
-	}, [data]);
+	}, [data, me]);
 
 	const roundProgress = useMemo(() => {
 		const { round: roundData, tap: tapData } = data;
-
 		const state = roundState(now.value, roundData?.start, roundData?.end);
-
 		const myScore = tapData?.score ?? 0;
-		const addScore = tapData?.addScore ?? 0;
-
 		const isActive = state === "active";
 
 		const currentNow = Date.now();
@@ -122,7 +121,6 @@ export const Round = () => {
 
 		return {
 			isActive,
-			addScore,
 			myScore,
 			message,
 			state,
@@ -156,24 +154,50 @@ export const Round = () => {
 	}, []);
 
 	const tapMeter = useAvgTapMeter(1_000);
+	const onHit = useCallback(
+		(point: HitPoint) => {
+			if (roundControllerRef.current) {
+				const clientId = scoreLabels.addTap(point);
+				console.time(`tap:${clientId}`);
 
-	const onTapHandler = useCallback(() => {
-		if (roundControllerRef.current) {
-			console.time("tap");
-			roundControllerRef.current.send("tap");
+				roundControllerRef.current.send({
+					type: "tap",
+					payload: {
+						clientId,
+					},
+				});
 
-			tapSound.play("click");
-			tapMeter.tap();
-		}
-	}, [roundControllerRef.current, tapMeter]);
+				tapSound.play("click");
+				tapMeter.tap();
+			}
+		},
+		[roundControllerRef.current, tapMeter]
+	);
 
 	useEffect(() => {
 		roundControllerRef.current = api.rounds({ roundId }).ws.subscribe();
 
-		roundControllerRef.current.subscribe(({ data }) => {
-			console.timeEnd("tap");
-			queryClient.setQueryData(["round", roundId], data);
-		});
+		roundControllerRef.current.subscribe(
+			({ data: { clientId, ...data } = {} }) => {
+				console.timeEnd(`tap:${clientId}`);
+				const tapData = data.tap as TapResponse;
+				const prevRoundData = queryClient.getQueryData([
+					"round",
+					roundId,
+				]);
+
+				if (tapData) {
+					scoreLabels.addTapResponse(clientId, tapData.addScore);
+				}
+
+				const newRoundData = {
+					...prevRoundData,
+					...data,
+				};
+
+				queryClient.setQueryData(["round", roundId], newRoundData);
+			}
+		);
 
 		return () => {
 			roundControllerRef.current?.close();
@@ -224,15 +248,16 @@ export const Round = () => {
 
 			<div
 				className={style.character}
-				style={{
-					"--taps-power": `${tapsPower}%`,
-				}}
+				style={{ "--taps-power": `${tapsPower}%` }}
 			>
 				<Character
 					level={characterLevel}
-					changePerClick={`${roundProgress.addScore > 1 ? "🦠" : 1}`}
-					onHit={onTapHandler}
+					onHit={onHit}
 					isActive={roundProgress.isActive}
+					fallingItem={"🦠"}
+					heads={scoreLabels.heads}
+					labels={scoreLabels.labels}
+					onRemoveHead={scoreLabels.removeHead}
 				/>
 			</div>
 			<div className={style.panelBottom}>

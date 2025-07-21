@@ -16,6 +16,7 @@ import type {
 	RoundResponse,
 	ErrorResponse,
 	RoundModel,
+	CreateTapParams,
 } from "../models";
 import { CacheSyncMixin } from "../mixins";
 import {
@@ -23,7 +24,6 @@ import {
 	REDIS_QUEUE_ENDPOINT,
 	ROUND_DURATION,
 } from "../../moleculer-config/config";
-import Moleculer from "moleculer";
 
 export const TapService: ServiceSchema = {
 	name: "taps",
@@ -41,12 +41,13 @@ export const TapService: ServiceSchema = {
 			name: "taps-queue",
 			concurrency: 1,
 			async process(
-				job: Job<{
-					userId: string;
-					roundId: string;
-				}>
+				job: Job<
+					CreateTapParams & {
+						userId: string;
+					}
+				>
 			): Promise<TapResponse | ErrorResponse> {
-				const { userId, roundId } = job.data;
+				const { userId, roundId, clientId } = job.data;
 
 				const self = this as typeof TapService;
 				const broker = self.broker as ServiceBroker;
@@ -66,6 +67,23 @@ export const TapService: ServiceSchema = {
 				let winner = round.winner ?? null;
 
 				if (round.status !== "active") {
+					const users = await broker.call<
+						Record<string, UserResponse>,
+						{
+							id: (string | null)[];
+						}
+					>("users.getSafe", {
+						id: [round.winner],
+					});
+
+					const winnerUser = users[round.winner ?? ""] || null;
+
+					broker.broadcast("taps.tap", {
+						tap: undefined,
+						round: { ...round, winnerUser },
+						clientId,
+					});
+
 					console.error("round_not_active");
 
 					return {
@@ -162,6 +180,7 @@ export const TapService: ServiceSchema = {
 				broker.broadcast("taps.tap", {
 					tap,
 					round: { ...roundState, winnerUser },
+					clientId,
 				});
 
 				return tap;
@@ -219,10 +238,8 @@ export const TapService: ServiceSchema = {
 		},
 
 		tap: {
-			params: { roundId: "string" },
-			async handler(
-				ctx: Context<{ roundId: string }, { token?: string }>
-			) {
+			params: { roundId: "string", clientId: "string|optional" },
+			async handler(ctx: Context<CreateTapParams, { token?: string }>) {
 				const me = await ctx.call<UserResponse, undefined>(
 					"users.me",
 					undefined,
@@ -239,6 +256,7 @@ export const TapService: ServiceSchema = {
 					{
 						roundId: ctx.params.roundId,
 						userId: me.id,
+						clientId: ctx.params.clientId,
 					}
 				);
 
